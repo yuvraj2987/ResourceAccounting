@@ -1,2 +1,6 @@
 backup
 *.log
+*.o
+*.img
+*.tar
+
