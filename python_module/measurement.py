@@ -7,6 +7,7 @@ import threading
 myFile = "default.log"
 fileLock = threading.Lock()
 bus = smbus.SMBus(1)
+bufferSize=100
 
 ## Device config
 DEVICE_ADDRESS= 0x40
@@ -55,8 +56,11 @@ def main():
 	#my_array.append(startTime)
 	#my_array.append(0)
 	
+	print "log file set to "+myFile+"\n"
 	print "--- sensing starts ----"
+	
 	while True:
+		time.sleep(0.01)
 		rtTime = time.time() - startTime
 		tmpShunt = bus.read_word_data(DEVICE_ADDRESS, REG_SHUNT)
 		tmpBus = bus.read_word_data(DEVICE_ADDRESS, REG_BUS)
@@ -74,7 +78,7 @@ def main():
 		my_array.append(rtTime)
 		my_array.append(rtPower)
 		
-		if len(my_array) == 4000:
+		if len(my_array) == 2*bufferSize:
 			dup_array = my_array
 			thread = writerThread(dup_array, startTime, myIteration, myFile)
 			thread.start()
