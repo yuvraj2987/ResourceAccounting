@@ -87,7 +87,7 @@ static PyObject * py_set_device_info(PyObject *self, PyObject *args)
   //set_device_info();
   //snprintf(time2,sizeof(time2),"%ld.%06ld",log.avg.tv_sec,log.avg.tv_usec);
   //130     printf("%-20s%-20s%-20ld%-20ld%-20hd%-20ld%-20s\n",pname,time1,log.event_generated.count,log.event_dropped.count,log.event_consumed[i].    pid,log.event_consumed[i].counts.count,time2);
-  return Py_BuildValue("sii", pname, log.dev_opened_time.tv_sec, log.dev_opened_time.tv_usec, log.event_generated.count, log.event_dropped.count, log.event_consumed[i].pid[i].counts.count, log.avg.tv) ;
+  return Py_BuildValue("(sllllllll)", pname, log.dev_opened_time.tv_sec, log.dev_opened_time.tv_usec, log.event_generated.count, log.event_dropped.count, log.event_consumed[i].pid, log.event_consumed[i].counts.count, log.avg.tv_sec, log.avg.tv_usec) ;
   }
 }
 
