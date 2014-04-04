@@ -3,4 +3,5 @@ backup
 *.o
 *.img
 *.tar
+*.so
 
