@@ -35,10 +35,10 @@ static PyObject * py_get_device(PyObject *self, PyObject *args)
   int fd;
   int ndevices = 0;
   if (!PyArg_ParseTuple(args, "i", &fd))
-     return NULL;
+     return Py_BuildValue("i", -1);
 
   if(ioctl(fd,LGETDEVS,minors)<0)
-    return NULL;
+    return Py_BuildValue("i", -1);
   
   while(minors[ndevices]!=END_MARK)
   {
@@ -55,9 +55,40 @@ static PyObject * py_set_device_info(PyObject *self, PyObject *args)
   int fd;
   if (!PyArg_ParseTuple(args, "ii", &fd, &deviceId))
     return Py_BuildValue("i", 0);;
+  
+  if(minors[deviceId]==END_MARK)
+    return NULL;
+  
+  struct user_event_log log;
+  struct user_args cargs;
+  unsigned int i=0;
+  cargs.minor = deviceId;
+  cargs.p = &log;
+  if(ioctl(fd,LGETDEVINFO,&cargs)<0)
+    return NULL;
 
+  for(i=0;i<log.ncount;i++)
+  {
+    char *pname;
+    for(i=0;i<log.ncount;i++)
+    {
+      if(i==0)
+      {
+        pname = log.name;
+      }
+      else
+      {
+        //pname="No Process Name";
+      }
+      char time1[20],time2[20];
+      snprintf(time1,sizeof(time1),"%ld.%06ld",log.dev_opened_time.tv_sec,log.dev_opened_time.tv_usec);
+      snprintf(time2,sizeof(time2),"%ld.%06ld",log.avg.tv_sec,log.avg.tv_usec);
+    }
   //set_device_info();
-  return Py_BuildValue("ii", 1);
+  //snprintf(time2,sizeof(time2),"%ld.%06ld",log.avg.tv_sec,log.avg.tv_usec);
+  //130     printf("%-20s%-20s%-20ld%-20ld%-20hd%-20ld%-20s\n",pname,time1,log.event_generated.count,log.event_dropped.count,log.event_consumed[i].    pid,log.event_consumed[i].counts.count,time2);
+  return Py_BuildValue("sii", pname, log.dev_opened_time.tv_sec, log.dev_opened_time.tv_usec, log.event_generated.count, log.event_dropped.count, log.event_consumed[i].pid[i].counts.count, log.avg.tv) ;
+  }
 }
 
 /*
