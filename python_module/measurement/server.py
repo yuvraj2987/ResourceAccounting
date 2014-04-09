@@ -4,7 +4,7 @@ import socket
 
 def main():
   print "--- starting server ---"
-  s = socket.socket()
+  s = socket.socket(socket.AF_UNIX)
   host = socket.gethostname()
   port = 12345
   s.bind((host, port))

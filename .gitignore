@@ -4,4 +4,4 @@ backup
 *.img
 *.tar
 *.so
-
+*.*.swp*
