@@ -5,7 +5,7 @@ import socket
 
 
 #Custome Modules
-import deviceModule
+import event_log_read
 import timeModule
 
 
@@ -28,6 +28,10 @@ REG_CALIB = 0x05
 ##### Global variables
 def get_time():
   ts = timeModule.time()
+  ret = ts[0] + (ts[1]+0.0)/1000000000
+  return ret
+
+def get_time(ts):
   ret = ts[0] + (ts[1]+0.0)/1000000000
   return ret
 
@@ -145,8 +149,8 @@ class measureThread (threading.Thread):
 def main():
 	print "--- main starts ---"
 	startTime = get_time()
-	myFile_power = "log_"+time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(startTime))+"_power.log"
-	myFile_socket = "log_"+time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(startTime))+"_socket.log"
+	myFile_power = "log/log_"+time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(startTime))+"_power.log"
+	myFile_socket = "log/log_"+time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(startTime))+"_socket.log"
 	bus.write_word_data(DEVICE_ADDRESS, 0x00, 0x9F08)
 	print "power log file set to "+myFile_power
 	print "socket log file set to "+myFile_socket
@@ -158,7 +162,9 @@ def main():
 	print "--- running measureThread ----"
 	
 	thread_measure = measureThread(startTime, myFile_power)
+  thread_events  = event_log_read.EventLogThread(startTime)
 	thread_measure.start()
+  thread_events.start()
 
 	print "--- starting server ---"
 
@@ -170,7 +176,7 @@ def main():
 		mySocket.bind((host, port))
 		mySocket.setblocking(1)
 		mySocket.listen(5)
-		myArray_socket=[]
+		myArray_socket
 		myIteration_socket=1;
 	
 		print "--- listening on server starts ---"
@@ -178,19 +184,22 @@ def main():
 		while True:
 			try:	
 				myConnection, myAddress = mySocket.accept()
-				nowTime = get_time()
+				#nowTime = get_time()
 				socketStr = myConnection.recv(1024)
 				print "--- got something form the socket: " + socketStr + " ---"
 				myConnection.close()
-				recordType, recordID, recordName = socketStr.split("|")
+				#recordType, recordID, recordName = socketStr.split("|")
+        recordType, port, time = receivedStr.split("|")
+        process, pid = getProcesInfo(port)
+        nowTime = get_time(time) 
 				strTime = "%.6f" % (nowTime - startTime)
-				myArray_socket.append(strTime)
-				myArray_socket.append(str(recordType))
-				myArray_socket.append(str(recordID))
-				myArray_socket.append(str(recordName))
+				#myArray_socket.append(strTime)
+				#myArray_socket.append(str(recordType))
+				#myArray_socket.append(str(recordID))
+				#myArray_socket.append(str(recordName))
+        myArray_socket = [strTime, str(recordType), process, pid]
 				dummyArray = myArray_socket
 				thread_socket = writerThread_socket (dummyArray, startTime, myIteration_socket, myFile_socket)
-				myArray_socket = []
 				myIteration_socket = myIteration_socket + 1
 				thread_socket.start()
 			except:
