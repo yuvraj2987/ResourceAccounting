@@ -5,7 +5,7 @@ import socket
 
 
 #Custome Modules
-import event_log_read
+import eventReadModule
 import timeModule
 
 
@@ -162,7 +162,7 @@ def main():
 	print "--- running measureThread ----"
 	
 	thread_measure = measureThread(startTime, myFile_power)
-  thread_events  = event_log_read.EventLogThread(startTime)
+  thread_events  = eventReadModule.EventLogThread(startTime)
 	thread_measure.start()
   thread_events.start()
 
