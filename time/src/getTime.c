@@ -17,12 +17,14 @@ int main(int argc, char* argv[])
     register short int count = 0;
     clock_gettime(CLOCK_MONOTONIC, &first);
     clock_gettime(CLOCK_MONOTONIC, &second);
- 
+    /*
     while(second.tv_nsec - first.tv_nsec< 1000000)
     {
         clock_gettime(CLOCK_MONOTONIC, &second);
         count++; 
     }
+  
+    printf("For 1ms count is:%d\n", count);*/
 
-    printf("For 1ms count is:%d\n", count);
+    printf("%lld.%.9ld", (long long) first.tv_sec, first.tv_nsec);
 }

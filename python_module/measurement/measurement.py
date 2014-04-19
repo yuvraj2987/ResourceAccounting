@@ -183,6 +183,9 @@ def main():
 				socketStr = myConnection.recv(1024)
 				print "--- got something form the socket: " + socketStr + " ---"
 				myConnection.close()
+        ### TO DO: Idelly gpsd should send us time at which the connection was opened
+        # But that time might not be in right context wrt time measured here
+        # Something that should be considered
 				recordType, recordID, recordName = socketStr.split("|")
 				strTime = "%.6f" % (nowTime - startTime)
 				myArray_socket.append(strTime)
