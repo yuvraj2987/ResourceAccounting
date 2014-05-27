@@ -1,8 +1,7 @@
 import smbus
-import time
 import threading
 import socket
-
+from time import strftime, localtime
 
 #Custome Modules
 import eventReadModule
@@ -24,7 +23,7 @@ REG_SHUNT = 0x01
 REG_BUS = 0x02
 REG_POWER = 0x03
 REG_CURRENT = 0x04
-164REG_CALIB = 0x05
+REG_CALIB = 0x05
 ##### Global variables
 
 def get_time(ts=timeModule.time()):
@@ -143,10 +142,10 @@ class measureThread (threading.Thread):
 #####
 
 def main():
-	print "--- main starts ---"
+	print "--- main starts  ---"
 	startTime = get_time()
-	myFile_power = "log/log_"+time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(startTime))+"_power.log"
-	myFile_socket = "log/log_"+time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(startTime))+"_socket.log"
+	myFile_power = "log/log_"+strftime("%Y_%m_%d_%H_%M_%S", localtime(startTime))+"_power.log"
+	myFile_socket = "log/log_"+strftime("%Y_%m_%d_%H_%M_%S",localtime(startTime))+"_socket.log"
 	bus.write_word_data(DEVICE_ADDRESS, 0x00, 0x9F08)
 	print "power log file set to "+myFile_power
 	print "socket log file set to "+myFile_socket
