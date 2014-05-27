@@ -24,14 +24,10 @@ REG_SHUNT = 0x01
 REG_BUS = 0x02
 REG_POWER = 0x03
 REG_CURRENT = 0x04
-REG_CALIB = 0x05
+164REG_CALIB = 0x05
 ##### Global variables
-def get_time():
-  ts = timeModule.time()
-  ret = ts[0] + (ts[1]+0.0)/1000000000
-  return ret
 
-def get_time(ts):
+def get_time(ts=timeModule.time()):
   ret = ts[0] + (ts[1]+0.0)/1000000000
   return ret
 
@@ -161,10 +157,10 @@ def main():
 
 	print "--- running measureThread ----"
 	
-	thread_measure = measureThread(startTime, myFile_power)
-  thread_events  = eventReadModule.EventLogThread(startTime)
-	thread_measure.start()
-  thread_events.start()
+        thread_measure = measureThread(startTime, myFile_power)
+        thread_events  = eventReadModule.EventLogThread(startTime)
+        thread_measure.start()
+        thread_events.start()
 
 	print "--- starting server ---"
 
@@ -189,15 +185,15 @@ def main():
 				print "--- got something form the socket: " + socketStr + " ---"
 				myConnection.close()
 				#recordType, recordID, recordName = socketStr.split("|")
-        recordType, port, time = receivedStr.split("|")
-        process, pid = getProcesInfo(port)
-        nowTime = get_time(time) 
+        			recordType, port, time = receivedStr.split("|")
+        			process, pid = getProcesInfo(port)
+        			nowTime = get_time(time) 
 				strTime = "%.6f" % (nowTime - startTime)
 				#myArray_socket.append(strTime)
 				#myArray_socket.append(str(recordType))
 				#myArray_socket.append(str(recordID))
 				#myArray_socket.append(str(recordName))
-        myArray_socket = [strTime, str(recordType), process, pid]
+        			myArray_socket = [strTime, str(recordType), process, pid]
 				dummyArray = myArray_socket
 				thread_socket = writerThread_socket (dummyArray, startTime, myIteration_socket, myFile_socket)
 				myIteration_socket = myIteration_socket + 1
