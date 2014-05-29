@@ -1,8 +1,8 @@
 import smbus
 import threading
 import socket
-from time import strftime, localtime
-
+import time
+import sys, os
 #Custome Modules
 import eventReadModule
 import timeModule
@@ -37,11 +37,43 @@ def saveRecords_power(records,fileName):
 			fd.write(myStr+"\n")
 #####
 def saveRecords_socket(records,fileName):
+	#print "Start saveRecords"
+	myStr = records[0]+" "+records[1]+" "+records[2]+" "+records[3]
+	#print myStr
 	with file(fileName, "a+") as fd:
-		for myRecord in range(0,len(records)/4):
-			myStr= (records[4*myRecord]," ", records[4*myRecord+1]," ",  records[4*myRecord+2], " ", records[4*myRecord+3])
-			fd.write(myStr+"\n")
+		fd.write(myStr+"\n")
+	
 #####
+def getProcessName(port):
+	#print "getProcessName starts for port:", port	
+	cmd1 = "lsof -i :"+port
+  	result = os.popen(cmd1)
+  	resultStr = result.read()
+	lines = resultStr.splitlines()
+	processName = ""
+	pid = ""
+	if len(lines) > 2:
+   		#print "lines are greater than 2"    
+	   for line in lines[1:]:
+		  #print line.strip()
+		  #print "Type of line:",type(line)
+		  cols = line.split()
+		  #print "Type of cols:", type(cols)
+		  #print cols[:2]
+		  tname, tid= cols[:2]
+		  if tname not in ['gpsd', 'bash']:
+		    processName = tname
+		    pid = tid 
+		    break
+		  else:
+		    processName = ""
+		    pid = ""
+	else:
+		#print "lines are less than 2"
+		cols = lines[1].split()
+		processName, pid = cols[:2]
+	#print "process:%s\t pid:%s"%(processName, pid)
+  	return processName, pid
 #####
 class writerThread_power (threading.Thread):
 	def __init__(self, array, offset, tmpiteration, fileName):
@@ -141,11 +173,12 @@ class measureThread (threading.Thread):
 		print "--- measureThread says bye bye ---"
 #####
 
+
 def main():
 	print "--- main starts  ---"
 	startTime = get_time()
-	myFile_power = "log/log_"+strftime("%Y_%m_%d_%H_%M_%S", localtime(startTime))+"_power.log"
-	myFile_socket = "log/log_"+strftime("%Y_%m_%d_%H_%M_%S",localtime(startTime))+"_socket.log"
+	myFile_power = "log/log_"+time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(startTime))+"_power.log"
+	myFile_socket = "log/log_"+time.strftime("%Y_%m_%d_%H_%M_%S",time.localtime(startTime))+"_socket.log"
 	bus.write_word_data(DEVICE_ADDRESS, 0x00, 0x9F08)
 	print "power log file set to "+myFile_power
 	print "socket log file set to "+myFile_socket
@@ -159,51 +192,58 @@ def main():
         thread_measure = measureThread(startTime, myFile_power)
         thread_events  = eventReadModule.EventLogThread(startTime)
         thread_measure.start()
-        thread_events.start()
+        #thread_events.start()
 
 	print "--- starting server ---"
 
 	try:
-		mySocket = socket.socket()
-		#host = socket.gethostname()
+		
+		mySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		host = "127.0.0.1"
-		port = 40000 #12345
+		port = 40000
 		mySocket.bind((host, port))
 		mySocket.setblocking(1)
 		mySocket.listen(5)
-		myArray_socket
-		myIteration_socket=1;
-	
-		print "--- listening on server starts ---"
-
+		print "Server started"
+		
 		while True:
-			try:	
-				myConnection, myAddress = mySocket.accept()
-				#nowTime = get_time()
-				socketStr = myConnection.recv(1024)
-				print "--- got something form the socket: " + socketStr + " ---"
-				myConnection.close()
-				#recordType, recordID, recordName = socketStr.split("|")
-        			recordType, port, time = receivedStr.split("|")
-        			process, pid = getProcesInfo(port)
-        			nowTime = get_time(time) 
+			try:
+				conn, addr = mySocket.accept()
+				print "Got connection from:", addr
+				receiveStr = conn.recv(1024)
+				print "Received following message\n", receiveStr
+				recordType, port, tmStr = receiveStr.split("|")
+				process, pid = getProcessName(port)
+				print "Got process name"
+				tm_list = tmStr.split(".")
+				#print "split time", str(tm_list)
+				
+				tm = [0.0, 0.0]
+				tm[0]  = float(tm_list[0])
+				tm[1]  = float(tm_list[1])
+				print "Time from gps:", str(tm)
+			
+				nowTime = get_time(tm) 
+				print "Got start time"
 				strTime = "%.6f" % (nowTime - startTime)
-				#myArray_socket.append(strTime)
-				#myArray_socket.append(str(recordType))
-				#myArray_socket.append(str(recordID))
-				#myArray_socket.append(str(recordName))
-        			myArray_socket = [strTime, str(recordType), process, pid]
+			
+				myArray_socket = [str(strTime), str(recordType), str(process), str(pid)]
 				dummyArray = myArray_socket
-				thread_socket = writerThread_socket (dummyArray, startTime, myIteration_socket, myFile_socket)
-				myIteration_socket = myIteration_socket + 1
-				thread_socket.start()
+				print "Array:",dummyArray				
+				print "Start writing "
+				saveRecords_socket(dummyArray, myFile_socket)
+				print "Record saved in file"
+				
 			except:
-				thread_measure.stop()
-				break
-
+				print "Exception in socket communication"
+				print "Close the socket"
+				mySocket.close()
+				raise
+	        
 	except:
-		print "--- something wrong with the socket ---"
+		print "Exception message:"+ str(sys.exc_info())
 		thread_measure.stop()
+		#thread_events.stop()
 	
 
 
@@ -216,7 +256,7 @@ def test():
 #####
 
 if __name__ == "__main__":
-	main()
+  main()
   #test()
 
 #####
