@@ -5,8 +5,8 @@ import socket
 def main():
   print "--- starting server ---"
   s = socket.socket(socket.AF_UNIX)
-  host = socket.gethostname()
-  port = 12345
+  host = "127.0.0.1"
+  port = 40000
   s.bind((host, port))
 
   s.setblocking(1)
