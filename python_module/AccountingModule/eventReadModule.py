@@ -23,25 +23,18 @@ class EventLogThread(threading.Thread):
     fileObj.write("%.6f# # #\n" % self.start_time)
     deviceFd = deviceModule.open()
     print "Device Fd:", deviceFd
-    if deviceFd is None:
-      print "Exit EventLogThread"
-      fileObj.close()
-      thread.exit()
     
     numDevices = 0
-    while (numDevices == 0) and (not self.stopped()):
+    while (numDevices == 0):
       numDevices = deviceModule.get_device(deviceFd)
+      print "Number of devices found:", numDevices
       if numDevices < 0:
           print "Error: eventLogDev thread"
           print "Number of devices found is less than 0"
           fileObj.close()
-          break
-
+          sys.exit(-1)
+    #while ends
     print "EventLogThread: number of devices found:", numDevices
-    if fileObj.closed:
-      print "FileObj is closed end eventLogThread"
-      thread.exit()
-    #print "fileObj is open"
     fileObj.write("%-20s\t%-20s\t%-20s\t%-20s\n" % ("DEVICE_NAME", "OPEN_TIME", "PID", "LATENCY"))
 
     while not self.stopped():
