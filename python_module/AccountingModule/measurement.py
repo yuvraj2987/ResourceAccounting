@@ -190,9 +190,9 @@ def main():
 	print "--- running measureThread ----"
 	
         thread_measure = measureThread(startTime, myFile_power)
-        thread_events  = eventReadModule.EventLogThread(startTime)
+        #thread_events  = eventReadModule.EventLogThread(startTime)
         thread_measure.start()
-        thread_events.start()
+        #thread_events.start()
 
 	print "--- starting server ---"
 
@@ -244,18 +244,17 @@ def main():
 		#print "Exception message:"+ str(sys.exc_info())
 		print "Keyboard Interrupt occoured"
 		thread_measure.stop()
-		thread_events.stop()
+		#thread_events.stop()
 		print "Wait for threads to exit"
 		thread_measure.join()
-		thread_events.join()
-	
-    except:
-        print "Unexpected error:"+ str(sys.exc_info())
-        thread_measure.stop()
-		thread_events.stop()
+		#thread_events.join()
+	except:
+		print "Unexpected error:"+ str(sys.exc_info())
+		thread_measure.stop()
+		#thread_events.stop()
 		print "Wait for threads to exit"
 		thread_measure.join()
-		thread_events.join()
+		#thread_events.join()
 
 	print "--- end of program ---"
 
