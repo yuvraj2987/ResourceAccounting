@@ -1,0 +1,1466 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+   <meta name="Description" content="Programmer's references for GPSD"/>
+   <meta name="Keywords" content="GPS, translator, GIS"/>
+   <title>Hacker's Guide to GPSD</title>
+   <link rel="stylesheet" href="main.css" type="text/css"/>
+</head>
+<body>
+
+<div id="Header">Hacker's Guide to GPSD</div>
+
+<div id="Menu">
+    <img src="gpsd-logo-small.png" alt="Small gpsd Logo" /><br />
+    <a href="index.html">Home</a><br/>
+    <a href="index.html#news">News</a><br/>
+    <a href="index.html#downloads">Downloads</a><br/>
+    <a href="index.html#mailing-lists">Mailing lists</a><br/>
+    <a href="index.html#documentation">Documentation</a><br/>
+    <a href="faq.html">FAQ</a><br/>
+    <a href="xgps-sample.html">Screenshots</a><br/>
+    <a href="index.html#recipes">Recipes</a><br/>
+    <a href="index.html#others">Other GPSDs</a><br/>
+    <a href="hardware.html">Hardware</a><br/>
+    <a href="for-vendors.html">For GPS Vendors</a><br/>
+    <a href="wishlist.html">Wish List</a><br/>
+    <a href="hall-of-shame.html">Hall of Shame</a><br/>
+    Hacker's Guide<br/>
+    <a href="troubleshooting.html">Troubleshooting Guide</a><br/>
+    <a href="protocol-transition.html">Application Compatibility</a>
+    <a href="references.html">References</a><br/>
+    <a href="history.html">History</a><br/>
+    <a href="future.html">Future</a><br/>
+
+    <div>&nbsp;</div>
+
+    <a href='http://www.catb.org/hacker-emblem/'><img
+    src='http://www.catb.org/hacker-emblem/glider.png'
+    alt='hacker emblem' /></a><br />
+
+    <script type="text/javascript" src="http://www.ohloh.net/p/3944/widgets/project_thin_badge.js"></script>
+
+    <hr/>
+    <script type="text/javascript"><!--
+    google_ad_client = "pub-1458586455084261";
+    google_ad_width = 160;
+    google_ad_height = 600;
+    google_ad_format = "160x600_as";
+    google_ad_type = "text";
+    google_ad_channel = "";
+    //--></script>
+    <script type="text/javascript"
+      src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+    </script>
+    <hr/>
+
+    <a href="http://validator.w3.org/check/referer"><img
+          src="http://www.w3.org/Icons/valid-xhtml10"
+          alt="Valid XHTML 1.0!" height="31" width="88" /></a>
+</div>
+<div id="Content">
+
+<h1>Contents</h1>
+
+<p>If you're looking for things to hack on, first see the TODO
+file in the source distribution.</p>
+
+<ol class="ToC">
+  <li><a href="#goals">Goals and philosophy of the project</a></li>
+  <li><a href="#audience">Audience and supported hardware</a>
+  <ol>
+    <li><a href="#service">The time and location service</a></li>
+    <li><a href="#tuning">The testing and tuning tools</a></li>
+    <li><a href="#upgrading">The upgrading tools</a></li>
+    <li><a href="#monitoring">The GPS/GNSS monitoring tools</a></li>
+  </ol></li>
+  <li><a href="#contribution">Contribution guidelines</a>
+  <ol>
+    <li><a href="#verify">Verify your patch or commit</a></li>
+    <li><a href="#patches">Send patches in diff -u or -c format</a></li>
+    <li><a href="#license">The license on contributions</a></li>
+    <li><a href="#options">Don't add invocation options!</a></li>
+    <li><a href="#statics">Don't create static variables in the libraries!</a></li>
+    <li><a href="#malloc">Don't use malloc!</a></li>
+    <li><a href="#sizeof">Avoid use of sizeof(&lt;int type&gt;)!</a></li>
+  </ol></li>
+  <li><a href="#understanding">Understanding the code</a>
+  <ol>
+    <li><a href="#debugging">Debugging</a></li>
+    <li><a href="#profiling">Profiling</a></li>
+    <li><a href="#porting">Porting to weird machines: endianness, width, and signedness issues.</a></li>
+    <li><a href="#architecture">Architecture and how to hack it</a></li>
+    <li><a href="#autoconfiguration">Autoconfiguration</a></li>
+    <li><a href="#error">Error modeling</a></li>
+    <li><a href="#ancient">Ancient history</a></li>
+  </ol></li>
+  <li><a href="#trouble">Known trouble spots</a>
+  <ol>
+    <li><a href="#y2k1">The Y2.1K problem and other calendar issues</a></li>
+    <li><a href="#hotplug">Hotplug interface problems</a></li>
+    <li><a href="#security">Security Issues</a></li>
+  </ol></li>
+  <li><a href="#newtypes">Adding new GPS types</a>
+  <ol>
+    <li><a href="#drivers">Driver architecture</a></li>
+    <li><a href="#notdriver">When not to add a driver</a></li>
+    <li><a href="#init">Initializing time and date</a></li>
+    <li><a href="#invocation">How drivers are invoked</a></li>
+    <li><a href="#reports">Where to put the data you get from the GPS</a></li>
+    <li><a href="#confidence">Report errors with a 95% confidence interval</a></li>
+    <li><a href="#logfiles">Log files for regression testing</a></li>
+  </ol></li>
+  <li><a href="#designahead">Future Protocol Directions</a>
+  <ol>
+    <li><a href="#proposed">Proposed sentences</a></li>
+  </ol></li>
+  <li><a href="#blindalleys">Blind alleys</a>
+  <ol>
+    <li><a href="#oncepercycle">Reporting fix data only once per cycle</a></li>
+    <li><a href="#shipstrings">Allowing clients to ship arbitrary control strings to a GPS</a></li>
+    <li><a href="#fifo">Setting FIFO threshold to 1 to reduce jitter in serial-message times</a></li>
+    <li><a href="#utc-tai">Stop using a compiled-in UTC-TAI offset</a></li>
+    <li><a href="#subsecond">Subsecond polling</a></li>
+  </ol></li>
+  <li><a href="#release">Release Checklist</a></li>
+</ol>
+
+<h1 id="goals">Goals and philosophy of the project</h1>
+
+<p>If the GPSD project ever needs a slogan, it will be "Hide the ugliness!"
+GPS technology works, but is baroque, ugly and poorly documented.  Our
+job is to know the grotty details so nobody else has to.</p>
+
+<h1 id="audience">Audience and supported hardware</h1>
+
+<p>Our paradigm user, the one we have in mind when making design choices,
+is running navigational or wardriving software on a Linux laptop or
+PDA. Some of our developers are actively interested in supporting
+GPS-with-SBC (Single-Board-Computer) hardware such as is used in
+balloon telemetry, marine navigation, and aviation.</p>
+
+<p>These two use cases have similar issues in areas like client
+interfaces and power/duty-cycle management.  The one place where
+they differ substantially is that in the SBC case we generally
+know in advance what devices will be connected and when.  Thus, by
+designing for the less predictable laptop/PDA environment, we
+cover both.  But it is not by accident that the source code can be built
+with support for only any single GPS type compiled in.</p>
+
+<p>While we will support survey-grade GPSes when and if we have that
+hardware for testing, our focus will probably remain on inexpensive
+and readily-available consumer-grade GPS hardware, especially GPS
+mice.</p>
+
+<h2 id="service">The time and location service</h2>
+
+<p>The primary aim of the GPSD project is to support a simple
+time-and-location service for users and their geographically-aware
+applications.</p>
+
+<p>A GPS is a device for delivering fourteen numbers: x, y, z, t, vx,
+vy, vz, and error estimates for each of these seven coordinates.  The
+<code>gpsd</code> daemon's job is to deliver these numbers to user
+applications with minimum fuss.  This is a "TPV" &mdash;
+time-position-velocity report. A GPS is a TPV oracle.</p>
+
+<p>'Minimum fuss' means that the only action the user should have to
+take to enable location service is to plug in a GPS.  The
+<code>gpsd</code> daemon, and its associated hotplug scripts or local
+equivalent, is responsible for automatically configuring itself. That
+includes autobauding, handshaking with the device, determining the
+correct mode or protocol to use, and issuing any device-specific
+initializations required.</p>
+
+<p>Features (such as GPS type or serial-parameter switches) that would
+require the user to perform administrative actions to enable location
+service will be rejected.  GPSes that cannot be autoconfigured will
+not be supported.  99% of the GPS hardware on the market in 2005 is
+autoconfigurable, and the design direction of GPS chipsets is such
+that this percentage will rise rather than fall; we deliberately
+choose simplicity of interface and zero administration over 100%
+coverage.</p>
+
+<p>Here is a concrete example of how this principle applies.  At least
+one very low-end GPS chipset (the San Jose Navigation GM-38) does not
+deliver correct checksums on the packets it ships to a host unless it
+has a fix.  Typically, GPSes do not have a fix when they are plugged
+in, at the time <code>gpsd</code> must recognize and autoconfigure the
+device.  Thus, supporting this chipset would require that we either
+(a) disable packet integrity checking in the autoconfiguration code,
+making detection of other more well-behaved devices unreliable, or (b)
+add an invocation switch to disable packet integrity checking for that
+chipset alone.  We refuse to do either, and do not support this
+chipset.</p>
+
+<h2 id="tuning">The testing and tuning tools</h2>
+
+<p>Another principal goal of the GPSD software is that it be able to
+demonstrate its own correctness, give technical users good tools for
+measuring GPS accuracy and diagnosis of GPS idiosyncrasies, and
+provide a test framework for gpsd-using applications.</p>
+
+<p>Accordingly, we support the <code>gpsfake</code> tool that
+simulates a GPS using recorded or synthetic log data.  We support
+<code>gpsprof</code>, which collects accuracy and latency statistics
+on GPSes and the GPS+<code>gpsd</code> combination.  And we include a
+comprehensive regression-test suite with the package.  These tools are
+not accidents, they are essential to ensure that the basic
+GPS-monitoring code is not merely correct but <em>demonstrably</em>
+correct.</p>
+
+<p>We support a tool, <code>gpsmon</code>, which is a low-level packet
+monitor and diagnostic tool. <code>gpsmon</code> is capable of tuning
+some device-specific control settings such as the SiRF
+static-navigation mode.  A future direction of the project is to
+support diagnostic monitoring and tuning for our entire range of
+chipsets.</p>
+
+<h2 id="monitoring">The GPS/GNSS monitoring tools</h2>
+
+<p>Another secondary goal of the project is to provide open-source tools
+for diagnostic monitoring and accuracy profiling not just of
+individual GPSes but of the GPS/GNSS network itself. The protocols
+(such as IS-GPS-200 for satellite downlink and RCTM104 for
+differential-GPS corrections) are notoriously poorly documented, and
+open-source tools for interpreting them have in the past been hard
+to find and only sporadically maintained.</p>
+
+<p>We aim to remedy this.  Our design goal is to provide lossless
+translators between these protocols and readable, documented
+text-stream formats.</p>
+
+<p>We currently provide a tool for decoding RTCM104 reports on satellite
+health, almanacs, and pseudorange information from differential-GPS
+radios and reference stations.  A future direction of the project is
+to support an RTCM104 encoder.</p>
+
+<h1 id="contribution">Contribution guidelines</h1>
+
+<h2 id="languages">Our languages are C, Python, and sh</h2>
+
+<p>The project implementation languages are C and Python.  The core
+libgpsd libraries (and the daemon, which is a thin wrapper around
+them) are written in C; the test and profiling tools are written in
+Python, with a limited amount of glue in POSIX-conformant sh.</p>
+
+<p>Code in other languages will, in general, be accepted only if
+it supplies a language binding for the libgps or libgpsd libraries
+that we don't already have.  This restriction is an attempt to keep
+our long-term maintenance problem as tractable as possible.</p>
+
+<p>We require C for anything that may have to run on an embedded
+system. Thus, the daemon and libgpsd libraries need to stay pure C.
+Anything that links direct to the core libraries should also be in C,
+because Python's alien-type facilities are still just a little too
+complex and painful to be a net win for our situation. (We know this
+may be about to change with the advent of the ctypes module in Python
+2.6 and will keep an open mind, especially to anyone who actually
+supplies a ctypes Python wrapper for libgpsd.)</p>
+
+<p>We prefer Python anywhere we aren't required to use C by
+technical constraints &mdash; in particular, for
+test/profiling/logging tools, hotplug agents, and miscellaneous
+scripts.  Again, this is a long-term maintainability issue; there are
+whole classes of potential C bugs that simply don't exist in Python,
+and Python programs have a drastically lower line count for equivalent
+capability.</p>
+
+<p>Shell scripts are acceptable for test and build code that only has
+to run in our development and test environments, as opposed to target
+or production environments.  Note that shell scripts should not assume
+<code>bash</code> is available but rather stick to POSIX
+<code>sh</code>; among other benefits, this helps portability to BSD
+systems.  Generally code that will run in the Ubuntu/Debian
+<code>dash</code> can be considered safe.</p>
+
+<p>Here are two related rules:</p>
+
+<p>Any complexity that can be moved out of the <code>gpsd</code>
+daemon to external test or framework code doesn't belong in the
+daemon.</p>
+
+<p>Any complexity that can be moved out of C and into a higher-level
+language (Python, in particular) doesn't belong in C.</p>
+
+<p>Both rules have the same purpose: to move complexity and resource
+costs from the places in the codebase where we can least afford it
+to the places where it is most manageable and inflicts the least
+long-term maintenance burden.</p>
+
+<h2 id="verify">Verify your patch or commit</h2>
+
+<p>GPSD is written to a high quality standard, and has a defect rate
+that is remarkably low for a project of this size and complexity.  Our
+first <a href='http://www.coverity.com/'>Coverity</a> scan, in March
+2007, flagged only 4 potential problems in 22,397 LOC &mdash; and two
+of those were false positives.  This is <a
+href='http://lwn.net/Articles/115530/'>three orders of magnitude
+cleaner</a> than typical commercial software, and about half the
+defect density of the Linux kernel itself.</p>
+
+<p>This did not happen by accident.  We put a lot of effort into test
+tools and regression tests so we can avoid committing bad code. For
+committers, using those tests isn't just a good idea, it's the law
+&mdash; which is to say that if make a habit of <em>not</em> using
+them when you should, your commit access <em>will</em> be yanked.</p>
+
+<p>Before shipping a patch or committing to the repository, you should
+go through the following checklist:</p>
+
+<ol>
+<li>If you are introducing a new feature or driver, include
+    documentation.</li>
+
+<li>If your patch changes executable code in any way that is more than
+    trivial, use the regression-test suite &mdash; "make testregress"
+    &mdash; to check that your patch doesn't break the handling of any
+    already-supported GPS.</li>
+
+<li>In the rare case where your patch or commit breaks the
+    regression test and it's for a good reason, part of your
+    responsibility is to (a) rebuild the regression tests, (b)
+    include the test changes in your patch, and (c) <b>explain
+    in detail why the regression broke</b> in your change comment.</li>
+
+<li>Check that the patched code displays no warnings when you run '<code>make
+    splint</code>' (see <a href="http://www.splint.org">the Splint
+    website</a> for further description of this tool if you don't
+    already know about it). Yes, tweaking your code to be splint-clean is
+    a pain in the ass.  Experience shows it's worth it.</li>
+
+<li>After code changes that do anything to the storage handling, run
+    valgrind-audit and look out for reports of memory leaks and other
+    dynamic-allocation problems (see <a href="http://valgrind.org">the
+    Valgrind website</a> for a description of this tool if you don't
+    already know about it).</li>
+</ol>
+
+<p>Not breaking the regression tests is especially important.  We rely
+on these to catch damaging side-effects of seemingly innocent but
+ill-thought-out changes, and to nail problems before they become
+user-visible.</p>
+
+<p>The reason we use splint is twofold: (1) it's good at catching
+static buffer overruns, and (2) <code>gpsd</code> does a lot of
+low-level bit-bashing that can be sensitive to 32-vs.-64-bit
+problems. Getting the code splint-clean tends to prevent these.</p>
+
+<p>If you are contributing a driver for a new GPS, please also do the
+following things:</p>
+
+<ol>
+  <li>Send us a representative sample of the GPS output for future
+  regression-testing.</li>
+
+  <li>Write a hardware entry describing the GPS for the <a
+  href="hardware.html">hardware page</a>.</li>
+</ol>
+
+<p>There's a whole section on adding new drivers later in this document.</p>
+
+<h2 id="patches">Send patches in diff -u or -c format</h2>
+
+<p>We prefer diff -u format, but diff -c is acceptable.  Do not send
+patches in the default (-e or ed) mode, as they are too brittle.</p>
+
+<p>When you send a patch, we expect you to do at least the first three
+of the same verification steps we <a href='#verify'>require</a> from
+our project committers.  Doing all of them is better, and makes it
+far more likely your patch will be accepted.</p>
+
+<h2 id="license">The license on contributions</h2>
+
+<p>The GPSD libraries are under the BSD license.  Please do not send
+contributions with GPL attached!</p>
+
+<p>The reason for this policy is to avoid making people nervous about
+linking the GPSD libraries to applications that may be under other
+licenses (such as MIT, BSD, AFL, etc.).</p>
+
+<h2 id="options">Don't add invocation options!</h2>
+
+<p>If you send a patch that adds a command-line option to the daemon, it
+will almost certainly be refused.  Ditto for any patch that requires
+<code>gpsd</code> to parse a dotfile.</p>
+
+<p>One of the major objectives of this project is for
+<code>gpsd</code> <em>not to require administration</em> &mdash; under
+Linux, at least.  It autobauds, it does protocol discovery, and it's
+activated by the hotplug system.  Arranging these things involved
+quite a lot of work, and we're not willing to lose the
+zero-configuration property that work gained us.</p>
+
+<p>Instead of adding a command-line option to support whatever feature
+you had in mind, try to figure out a way that the feature can
+autoconfigure itself by doing runtime checks.  If you're not clever
+enough to manage that, consider whether your feature control might be
+implemented with an extension to the gpsd protocol or the
+control-socket command set.</p>
+
+<p>Here are three specific reasons command-line switches are evil:</p>
+
+<p>(1) Command-line switches are often a lazy programmer's way out of
+writing correct adaptive logic.  This is why we keep rejecting
+requests for a baud-rate switch and a GPS type switch &mdash; the
+<em>right</em> thing is to make the packet-sniffer work better, and if
+we relented in our opposition the pressure to get that right would
+disappear.  Suddenly we'd be back to end-users having to fiddle with
+settings the software ought to figure out for itself, which is
+unacceptable.</p>
+
+<p>(2) Command-line switches without corresponding protocol commands
+pin the daemon's behavior for its entire lifespan. Why should the user
+have to fix a policy at startup time and never get to change his/her
+mind afterwards?  Stupid design...</p>
+
+<p>(3) The command-line switches used for a normal <code>gpsd</code>
+startup can only be changed by modifying the hotplug script.
+Requiring end-users to modify hotplug scripts (or anything else in
+admin space) is a crash landing.</p>
+
+<h2 id="statics">Don't create static variables in the libraries!</h2>
+
+<p>Don't create static variables in library or driver files; it makes
+them non-reentrant<span class="strikeout"> and hard to light</span>.  In practice, this means
+you shouldn't declare a static in any file that doesn't have a main()
+function of its own, and silly little test mains cordoned off by a
+preprocessor conditional don't count.</p>
+
+<p>Instead, use the 'driver' union in gps_device_t and the gps_context_t
+storage area that's passed in common in a lot of the calls.
+These are intended as places to stash stuff that needs to be shared
+within a session, but would be thread-local if the code were
+running in a thread.</p>
+
+<h2 id="malloc">Don't use malloc!</h2>
+
+<p>The best way to avoid having dynamic-memory allocation problems is
+not to use malloc/free at all.  The <code>gpsd</code> daemon doesn't
+(though the client-side code does).  Thus, even the longest-running
+instance can't have memory leaks.  The only cost for this turned out
+to be embedding a PATH_MAX-sized buffer in the gpsd.h structure.</p>
+
+<p>Don't undo this by using malloc/free in a driver or anywhere else.</p>
+
+<h2 id="sizeof">Avoid use of sizeof(&lt;int type&gt;)!</h2>
+
+<p>It's tempting to extract parts of packets with by using a loop of the
+form "<code>for(i = 0; i &amp; len; i += sizeof(long))</code>". Don't do that;
+not all integer types have the same length across architectures. A long may
+be 4 bytes on a 32-bit machine and 8 bytes on a 64-bit. If you mean to skip
+4 bytes in a packet, then say so (or use sizeof(int32_t)).</p>
+
+<h1 id="understanding">Understanding the code</h1>
+
+<h2 id="debugging">Debugging</h2>
+
+<p>For debugging purposes, it may be helpful to configure with
+&#x2D;&#x2D;disable-shared.  This turns off all the shared-library crud, making
+it somewhat easier to use gdb. (Don't forget to set CFLAGS=-g in the
+configure environment)</p>
+
+<p>There is a script called <code>logextract</code> in the devtools
+directory of the source distribution that you can use to strip clean
+NMEA out of the log files produced by <code>gpsd</code>.  This can be
+useful if someone ships you a log that they allege caused
+<code>gpsd</code> to misbehave.</p>
+
+<p><code>gpsfake</code> enables you to repeatedly feed a packet
+sequence to a <code>gpsd</code> instance running as non-root.
+Watching such a session with <code>gdb(1)</code> should smoke out any
+repeatable bug pretty quickly.</p>
+
+<p>Almost all the C programs have a -D option that enables logging
+of progress messages to standard error.  In gpsd itself this ups the
+syslogging level if it is running in background; see the LOG_* defines
+in gpsd.h to get an idea of what the log levels do.  Most of the test
+clients accept this switch to enable progress message from the libgps
+code; you can use it, for example, to watch what the client-side
+parser for the wire protocol is actually doing.</p>
+
+<p>The parsing of GPGSV sentences in the NMEA driver has been a
+persistent and nasty trouble spot, causing more buffer overruns and
+weird secondary damage than all the rest of the gpsd put together.
+Any time you get a bug report that seems to afflict NMEA devices
+only, suspicion should focus here.</p>
+
+<h2 id="profiling">Profiling</h2>
+
+<p>There is a barely-documented timing policy flag in the WATCH
+command that will cause it to emit a TIMING object on every sentence.
+The TIMING response contains the following attributed:</p>
+
+<ol>
+<li>tag: An identifying sentence tag.</li>
+
+<li>len: The character length of the sentence containing the timestamp
+    data.</li>
+
+<li>timebase: The timestamp associated with the sentence, in seconds since
+    the Unix epoch (this time <em>is</em> leap-second corrected, like UTC).
+    This timestamp may be zero.  If nonzero, it is the base time for
+    the packet.</li>
+
+<li>xmit: An offset from the timestamp telling when gpsd believes the
+    transmission of the current packet started (this is actually
+    recorded just before the first read of the new packet).  If
+    the sentence timestamp was zero, this offset is a full timestamp
+    and the base time of the packet.</li>
+
+<li>recv: An offset from the base time telling when <code>gpsd</code>
+    received the last bytes of the packet.</li>
+
+<li>decode: An offset from the base time telling when gpsd decoded the
+    data.</li>
+
+<li>poll: An offset from the base time taken just before encoding the
+    response &mdash; effectively, when gpsd was polled to transmit the
+    data.</li>
+
+<li>elapsed: An offset from the base time to the time of the TIMING emission.</li>
+</ol>
+
+<p>The TIMING figures measure components of the latency between the GPS's
+time measurement and when the sentence data became available to the
+client. For them to be meaningful, the GPS has to ship timestamps with
+sub-second precision. SiRF-II and Evermore chipsets ship times with
+millisecond resolution.  Your machine's time reference must also be
+accurate to subsecond precision; I recommend using <code>ntpd</code>,
+which will normally give you about 15 microseconds precision (two
+orders of magnitude better than GPSes report).</p>
+
+<p>Note, some inaccuracy is introduced into the start- and end-of-packet
+timestamps by the fact that the last read of a packet may grab a few
+bytes of the next one.</p>
+
+<p>The distribution includes a Python script, <code>gpsprof</code>,
+that uses the timing support to collect profiling information from a
+running GPS instance.  You can use this to measure the latency at each
+stage &mdash; GPS to daemon, daemon to client library &mdash; and to
+estimate the portion of the latency induced by serial transmit time.
+The <code>gpsprof</code> script creates latency plots using
+<code>gnuplot(1)</code>.  It can also report the raw data.</p>
+
+<h2 id="porting">Porting to weird machines: endianness, width, and signedness issues.</h2>
+
+<p>The gpsd code is well-tested on 32- and 64-bit IA chips, also on PPCs.
+Thus, it's known to work on mainstream chips of either 32 or 64 bits
+and either big-endian or little-endian representation with IEE754
+floating point.</p>
+
+<p>Handling of NMEA devices should not be sensitive to the machine's
+internal numeric representations, however, because the binary-protocol
+drivers have to mine bytes out of the incoming packets and mung them
+into fixed-width integer quantities, there could potentially be issues
+on weird machines.  The regression test should spot these.</p>
+
+<p>If you are porting to a true 16-bit machine, or something else with
+an unusual set of data type widths, take a look at bits.h.  We've
+tried to collect all the architecture dependencies here.</p>
+
+<h2 id="architecture">Architecture and how to hack it</h2>
+
+<p>There are two useful ways to think about the GPSD architecture.
+One is in terms of the layering of the software, the other is in terms
+of the normal flow of information through it.</p>
+
+<h3>The software-layering view</h3>
+
+<p> The <code>gpsd</code> breaks naturally into four pieces: the
+<b>drivers</b>, the <b>packet sniffer</b>, the <b>core library</b> and
+the <b>multiplexer</b>. We'll describe these from the bottom up.</p>
+
+<p>The <b>drivers</b> are essentially user-space device drivers for
+each kind of chipset we support.  The key entry points are methods to
+parse a data packet into time-position-velocity or status information,
+change its mode or baud rate, probe for device subtype, etc. See <a
+href="#drivers">Driver Architecture</a> for more details about
+them.</p>
+
+<p>The <b>packet sniffer</b> is responsible for mining data packets
+out of serial input streams.  It's basically a state machine that's
+watching for anything that looks like a properly checksummed packet.
+Because devices can hotplug or change modes, the type of packet
+that will come up the wire from a serial or USB port isn't necessarily
+fixed forever by the first one recognized.</p>
+
+<p>The <b>core library</b> manages a session with a GPS device.  The
+key entry points are (a) Starting a session by opening the device and
+reading data from it, hunting through baud rates and parity/stopbit
+combinations until the packet sniffer achieves synchronization
+lock with a known packet type, (b) polling the device for a packet,
+and (b) closing the device and wrapping up the session.</p>
+
+<p>A key feature of the core library is that it's responsible for
+switching each GPS connection to using the correct device driver
+depending on the packet type that the sniffer returns.  This is
+<em>not configured in advance</em> and may change over time, notably
+if the device switches between different reporting protocols (most
+chipsets support NMEA and one or more vendor binary protocols, and
+devices like AIS receivers may report packets in two different
+protocols on the same wire).</p>
+
+<p>Finally, the <b>multiplexer</b> is the part of the daemon that
+handles client sessions and device assignment.  It is responsible
+for passing TPV reports up to clients, accepting client commands,
+and responding to hotplug notifications. It is essentially all
+contained in the gpsd.c source file.</p>
+
+<p>The first three components (other than the multiplexer) are linked
+together in a library called libgpsd and can be used separately from
+the multiplexer. Our other tools that talk to GPSes directly, such as
+<code>gpsmon</code> and <code>gpsctl</code>, do it by calling into the
+core library and driver layer directly.</p>
+
+<p>Under some circumstances, the packet sniffer by itself is
+separately useful. <code>gpscat</code> uses it without the rest of the
+lower layer in order to detect and report packet boundaries in raw
+data. So does <code>gpsfake</code>, in order to chunk log files so they
+can be fed to a test instance of the daemon packet-by-packet with
+something approximating realistic timing.</p>
+
+<h3>The data-flow view</h3>
+
+<p>Essentially, <code>gpsd</code> spins in a loop polling for input from
+one of these sources:</p>
+
+<ol>
+  <li>A set of clients making requests over a TCP/IP port.</li>
+
+  <li>A set of GPSes, connected via serial or USB devices.</li>
+
+  <li>A set of DGPS or NTRIP servers issuing periodic differential-GPS
+  updates.</li>
+
+  <li>The special control socket used by hotplug scripts and some
+  configuration tools.</li>
+</ol>
+
+<p>The daemon only connects to a GPS when clients are connected to it.
+Otherwise all GPS devices are closed and the daemon is quiescent.</p>
+
+<p>All writes to client sockets go through throttled_write().
+This code addresses two cases.  First, client has dropped the connection.
+Second, client is connected but not picking up data and our buffers are
+backing up.  If we let this continue, the write buffers will fill and
+the effect will be denial-of-service to clients that are better behaved.</p>
+
+<p>Our strategy is brutally simple and takes advantage of the fact that
+GPS data has a short shelf life.  If the client doesn't pick it up
+within a few minutes, it's probably not useful to that client.  So if
+data is backing up to a client, drop that client.  That's why we set
+the client socket to non-blocking.</p>
+
+<p>For similar reasons, we don't try to recover from short writes to
+the GPS, e.g. of DGPS corrections.  They're packetized, so the device
+will ignore a fragment, and there will generally be another correction
+coming along shortly.  Fixing this would require one of two
+strategies:</p>
+
+<ol>
+<li><p><b>Buffer any data not shipped by a short write for
+retransmission.</b> Would require us to use malloc and just be begging
+for memory leaks.</p></li>
+<li><p><b>Block till select indicates the hardware or lower layer is
+read for write.</b> Could introduce arbitrary delays for
+time-sensitive data.</p></li>
+</ol>
+
+<p>So far, as of early 2009, we've only seen short writes on Bluetooth
+devices under Linux.  It is not clear whether this is a problem
+with the Linux Bluetooth driver (it could be failing to coalesce
+and buffer adjacent writes properly) or with the underlying hardware
+(Bluetooth devices tend to be cheaply made and dodgy in other respects
+as well).</p>
+
+<p>GPS input updates an internal data structure which has slots in it for
+all the data you can get from a GPS.  Client commands mine that
+structure and ship reports up the socket to the client.  DGPS data is
+passed through, raw, to the GPS.</p>
+
+<p>The trickiest part of the code is the handling of input sources in
+gpsd.c itself.  It had to tolerate clients connecting and
+disconnecting at random times, and the GPS being unplugged and
+replugged, without leaking file descriptors; also arrange for the GPS
+to be powered up when and only when clients are active.</p>
+
+<p>The special control socket is primarily there to be used by
+hotplug facilities like Linux udev. It is intended to be written
+to by scripts activated when a relevant device (basically, a USB
+device with one of a particular set of vendor IDs) is connected to
+or disconnected from the system. On receipt of these messages,
+<code>gpsd</code> may add a device to its pool, or remove one and
+(if possible) shift clients to a different one.</p>
+
+<p>The reason these scripts have to look for vendor IDs is that USB
+has no GPS class.  Thus, GPSes present the ID of whatever
+serial-to-USB converter chip they happen to be using. Fortunately
+there are fewer types of these in use than there are GPS chipsets;
+in fact, just two of them account for 80% of the USB GPS market
+and don't seem to be used by other consumer-grade devices.</p>
+
+<h2 id="initialization">Driver initialization and wrapup</h2>
+
+<p>Part of the job <code>gpsd</code> does is to minimize the amount
+of time attached GPSes are in a fully powered-up state.  So there
+is a distinction between initializing the <code>gpsd</code> internal
+channel block structure for managing a GPS device (which we do when
+the hotplug system tells us it's available) and activating the device
+(when a client wants data from it) which actually involves opening it
+and preparing to read data from it.  This is why
+<code>gpsd_init()</code> and <code>gpsd_activate()</code> are separate
+library entry points.</p>
+
+<p>There is also a distinction between deactivating a device (which we
+do when no users are listening to it) and finally releasing
+the <code>gpsd</code> channel block structure for managing the device
+(which typically happens either when <code>gpsd</code> terminates or
+the hotplug system tells <code>gpsd</code> that the device has been
+disconnected).  This is why <code>gpsd_deactivate()</code> and
+<code>gpsd_wrap()</code> are separate entry points.</p>
+
+<p><code>gpsd</code> has to configure some kinds of GPS devices when
+it recognizes them; this is what the <code>event_identify</code> and
+<code>event_configure</code> hooks are for.  <code>gpsd</code> tries
+to clean up after itself, restoring settings that were changed by the
+configurator method; this is done by <code>gpsd_deactivate()</code>,
+which fires the <code>deactivate</code> event so the driver can revert
+settings.</p>
+
+<h2 id="autoconfiguration">Autoconfiguration</h2>
+
+<p>One of the design goals for <code>gpsd</code> is to be as near
+zero-configuration as possible.  Under most circumstances, it doesn't
+require either the GPS type or the serial-line parameters to connect
+to it to be specified.  Presently, here's how the autoconfig
+works.</p>
+
+<ol>
+<li>At each baud rate <code>gpsd</code> grabs packets until the
+   sniffer sees either a well-formed and checksum-verified NMEA
+   packet, a well-formed and checksum-verified packet of one of the
+   binary protocols, or it sees one of the two special trigger strings
+   EARTHA or ASTRAL, or it fills a long buffer with garbage (in which
+   case it steps to the next baud-rate/parity/stop-bit).</li>
+
+<li>If it finds a SiRF packet, it queries the chip for firmware
+   version.  If the version is &lt; 231.000 it drops back to SiRF NMEA.
+   We're done.</li>
+
+<li>If it finds a Zodiac binary packet (led with 0xff 0x81), it
+   switches to the Zodiac driver.  We're done.</li>
+
+<li>If it finds an Evermore binary packet (led with DLE=0x10 followed
+   by STX=0x02) it switches to Evermore binary protocol.  We're done.</li>
+
+<li>If it finds a Navcom binary packet (led with 0x10 0x02 0x99 0x66)
+   it switches to Navcom driver.  We're done.</li>
+
+<li>If it finds a TSIP binary packet (led with 0x10=DLE), it
+   switches to the TSIP driver.  We're done.</li>
+
+<li>If it finds an iTalk v3 binary packet (led with &lt;! ), it
+   switches to the iTalk driver.  We're done.</li>
+
+<li>If it finds a UBX binary packet (led with  &mu;B ), it
+   switches to the UBX driver.  We're done.</li>
+
+<li>If it finds EARTHA, it selects the Earthmate driver, which then
+   flips the connection to Zodiac binary mode.  We're done.</li>
+
+<li>If it finds ASTRAL, it feeds the TripMate on the other end what
+   it wants and goes to Tripmate NMEA mode.  We're done.</li>
+
+<li>If it finds a NMEA packet, it selects the NMEA driver.  This
+   initializes by shipping all vendor-specific initialization strings
+   to the device.  The objectives are to enable GSA, disable GLL, and
+   disable VTG.  Probe strings go here too, like the one that turns
+   on SiRF debugging output in order to detect SiRF chips.</li>
+
+<li>Now gpsd reads NMEA packets.  If it sees a driver trigger string it
+   invokes the matching driver.</li>
+</ol>
+
+<p>The outcome is that we know exactly what we're looking at, without any
+driver-type or baud rate options.</p>
+
+<p>(The above sequence of steps may be out of date.  If so, it will
+be because we have added more recognized packet types and drivers.)</p>
+
+<h2 id="error">Error modeling</h2>
+
+<p>To estimate errors (which we must do if the GPS isn't nice and reports
+them in meters with a documented confidence interval), we need to
+multiply an estimate of User Equivalent Range Error (UERE) by the
+appropriate dilution factor,</p>
+
+<p>The UERE estimate is usually computed as the square root of the sum of
+the squares of individual error estimates from a physical model.  The
+following is a representative physical error model for satellite range
+measurements:</p>
+
+<p>From R.B Langley's 1997 "The GPS error budget".
+GPS World , Vol. 8, No. 3, pp. 51-56</p>
+
+<div>&nbsp;</div>
+
+<table border='1'>
+  <tr><td>Atmospheric error &mdash; ionosphere</td><td>7.0m</td></tr>
+  <tr><td>Atmospheric error &mdash; troposphere</td><td>0.7m</td></tr>
+  <tr><td>Clock and ephemeris error</td><td>3.6m</td></tr>
+  <tr><td>Receiver noise</td><td>1.5m</td></tr>
+  <tr><td>Multipath effect</td><td>1.2m</td></tr>
+</table>
+
+<p>From Hoffmann-Wellenhof et al. (1997), "GPS: Theory and Practice", 4th
+Ed., Springer.</p>
+
+<div>&nbsp;</div>
+
+<table border='1'>
+  <tr><td>Code range noise (C/A)</td><td>0.3m</td></tr>
+  <tr><td>Code range noise (P-code)</td><td>0.03m</td></tr>
+  <tr><td>Phase range</td><td>0.005m</td></tr>
+</table>
+
+<p>We're assuming these are 2-sigma error ranges. This needs to
+be checked in the sources.  If they're 1-sigma the resulting UEREs
+need to be doubled.</p>
+
+<p>See <a
+href="http://www.seismo.berkeley.edu/~battag/GAMITwrkshp/lecturenotes/unit1/">
+this discussion</a> of conversion factors.</p>
+
+<p>Carl Carter of SiRF says: "Ionospheric error is typically corrected
+for at least in large part, by receivers applying the Klobuchar model
+using data supplied in the navigation message (subframe 4, page 18,
+Ionospheric and UTC data).  As a result, its effect is closer to that
+of the troposphere, amounting to the residual between real error and
+corrections."</p>
+
+<p>"Multipath effect is dramatically variable, ranging from near 0 in
+good conditions (for example, our roof-mounted antenna with few if any
+multipath sources within any reasonable range) to hundreds of meters in
+tough conditions like urban canyons.  Picking a number to use for that
+is, at any instant, a guess."</p>
+
+<p>"Using Hoffman-Wellenhoff is fine, but you can't use all 3 values.
+You need to use one at a time, depending on what you are using for
+range measurements.  For example, our receiver only uses the C/A
+code, never the P code, so the 0.03 value does not apply.  But once
+we lock onto the carrier phase, we gradually apply that as a
+smoothing on our C/A code, so we gradually shift from pure C/A code
+to nearly pure carrier phase.  Rather than applying both C/A and
+carrier phase, you need to determine how long we have been using
+the carrier smoothing and use a blend of the two."</p>
+
+<p>On Carl's advice we would apply tropospheric error twice, and use
+the largest Wellenhof figure:</p>
+
+<p>UERE = sqrt(0.7^2 + 0.7^2 + 3.6^2 + 1.5^2 + 1.2^2 + 0.3^2) = 4.1</p>
+
+<p>DGPS corrects for atmospheric distortion, ephemeris error, and satellite/
+receiver clock error.  Thus:</p>
+
+<p>UERE =  sqrt(1.5^2 + 1.2^2 + 0.3^2) = 1.8</p>
+
+<p>which we round up to 2 (95% confidence).</p>
+
+<p>Due to multipath uncertainty, Carl says 4.1 is too low and recommends
+a non-DGPS UERE estimate of 8 (95% confidence).  That's what we use.</p>
+
+<h2 id="ancient">Ancient history</h2>
+
+<p>The project is presently kept in a git repository.  Up until
+mid-August 2004 (r256) it was kept in CVS, which was mechanically
+upconverted to Subversion. On 12 March 2010 the Subversion repository was
+converted to git. The external releases from the Subversion era
+still exist as tags.</p>
+
+<h1 id="trouble">Known trouble spots</h1>
+
+<h2 id="y2k1">The Y2.1K problem and other calendar issues</h2>
+
+<p>Because of limitations in various GPS protocols (e.g., they were
+designed by fools who weren't looking past the ends of their noses)
+this code unavoidably includes some assumptions that will turn around
+and bite on various future dates. </p>
+
+<p>The three specific problems are:</p>
+
+<ol>
+  <li>The GPS radio format has a Y2K-style bug, the week counter
+  rollover, which happens either every 1024 weeks (roughly 20 years) or
+  every 8192 weeks (roughly 157 years), depending on whether your
+  receiver can decode a 10-bit or 13-bit GPS week field. At time of
+  writing the last 0 week was in 1999, the next 10-bit wraparound will
+  be in 2019, and the next 13-bit wraparound will be in 2157.</li>
+
+  <li>NMEA delivers only two-digit years.</li>
+
+  <li>SiRF chips at firmware level 231 deliver only GPS time in binary mode,
+  not leap-second-corrected UTC.</li>
+</ol>
+
+<p>Because of the first problem, the receiver's notion of the year may
+reset to the year of the last zero week if it is cold-booted on a date
+after a rollover.  This can have side effects:</p>
+
+<ol>
+  <li>The year part of the reported date will be invalid.</li>
+  <li>UTC time will be correct, but a local time calculated on this
+  will sometimes be off +- 1 hour, due to incorrect DST calculation.</li>
+  <li>Some receivers may fail to get a fix, especially if they don't
+  have a recent ephemeris.</li>
+</ol>
+
+<p>The public documentation is unclear, but it appears from a
+reference in the Transmission Week Number section of IS-GPS-200
+PIRN-002 that whether you can get 10 or 13 bits is a function of the
+satellite firmware revision, with 13 bits in the Block IIF and later
+birds (the first of these was launched in May 2010). Of course your
+receiver firmware also has to know that the extra three bits are
+present; at time of writing in late 2010 this capability is very rare
+and unavailable on consumer-grade receivers.</p>
+
+<p>For these reasons, GPSD needs the host computer's system clock to
+be accurate to within one second. (Work is in progress to relax this
+requirement to accuracy within half of a rollover period.)</p>
+
+<p>When debugging time and date issues, you may find an
+<a href="http://adn.agi.com/GNSSWeb/">interactive GPS calendar</a>
+useful.</p>
+
+<h2 id="hotplug">Hotplug interface problems</h2>
+
+<p>The hotplug interface works pretty nicely for telling gpsd which
+device to look at, at least on Fedora and Ubuntu Linux machines.  But
+it's Linux-specific.  OpenBSD (at least) features a hotplug daemon
+with similar capabilities.  We ought to do the right thing there as
+well.</p>
+
+<p>Hotplug is nice, but on Linux it appears to be a moving target. For
+help debugging a hotplug problem, see <a
+href="troubleshooting.html#hotplugtroubleshooting">Udev Hotplug
+Troubleshooting</a>.</p>
+
+<h2 id="security">Security Issues</h2>
+
+<p>Between versions 2.16 and 2.20, hotplugging was handled in the most
+obvious way, by allowing the F command to declare new GPS devices for
+gpsd to look at.  Because gpsd ran as root, this had problems:</p>
+
+<ol>
+<li>A malicious client with non-root access on the host could use F to
+point gpsd at a spoof GPS that was actually a pty feeding bogus
+location data.</li>
+
+<li>A malicious client could use repeated probes of a target tty or
+other device to cause data loss to other users.  This is a potential
+remote exploit! Not too bad if the bytes he steals are your mouse, it
+would just get jumpy and jerky &mdash; but suppose they're from an actual
+tty and sections drop out of a serial data stream you were relying on?</li>
+</ol>
+
+<p>The conclusion was inescapable.  Switching among and probing
+devices that gpsd already knows about can be an unprivileged
+operation, but editing gpsd's device list must be privileged.  Hotplug
+scripts should be able to do it, but ordinary clients should not.</p>
+
+<p>Adding an authentication mechanism was considered and rejected (can you
+say "can of big wriggly worms"?).  Instead, there is a separate
+control channel for the daemon, only locally accessible, only
+recognizing "add device" and "remove device" commands.</p>
+
+<p>The channel is a Unix-domain socket owned by root, so it has
+file-system protection bits.  An intruder would need root permissions
+to get at it, in which case you'd have much bigger problems than a
+spoofed GPS.</p>
+
+<p>More generally, certainly gpsd needs to treat command input as
+untrusted and for safety's sake should treat GPS data as untrusted
+too (in particular this means never assuming that either source won't
+try to overflow a buffer).</p>
+
+<p>Daemon versions after 2.21 drop privileges after startup, setting UID
+to "nobody" and GID to whichever group owns the GPS device specified
+at startup time &mdash; or, if it doesn't exist, the system's
+lowest-numbered TTY device named in PROTO_TTY.  It may be necessary to
+change PROTO_TTY in gpsd.c for non-Linux systems.</p>
+
+<h1 id="newtypes">Adding new GPS types</h1>
+
+<p>This section explains the conventions drivers for new devices
+should follow.</p>
+
+<h2 id="drivers">Driver architecture</h2>
+
+<p>Internally, gpsd supports multiple GPS types.  All are represented by
+driver method tables; the main loop knows nothing about the driver
+methods except when to call them.  At any given time one driver is
+active; by default it's the NMEA one.</p>
+
+<p>To add a new device, populate another driver structure and add it to
+the null-terminated array in drivers.c.</p>
+
+<p>Unless your driver is a nearly trivial variant on an existing one,
+it should live in its own C source file named after the driver type.
+Add it to the libgps_c_sources name list in Makefile.am</p>
+
+<p>The easiest way to write a driver is probably to copy the driver_proto.c
+file in the source distribution, change names appropriately, and write
+the guts of the analyzer and writer functions.  Look in gpsutils.c
+before you do; driver helper functions live there.  Also read some
+existing drivers for clues.</p>
+
+<p>You can read an implementer's <a href="writing-a-driver.html">Notes
+On Writing A GPSD Driver.</a></p>
+
+<p>There's a second kind of driver architecture for
+<code>gpsmon</code>, the real-time packet monitor and diagnostic tool.
+It works from monitor-object definitions that include a pointer to the
+device driver for the GPS type you want to monitor.  See
+monitor_proto.c for a prototype and technical details.</p>
+
+<h2 id="notdriver">When not to add a driver</h2>
+
+<p>It is not necessary to add a driver just because your NMEA GPS wants
+some funky initialization string.  Simply ship the string in the
+initializer for the default NMEA driver.  Because vendor control
+strings live in vendor-specific namespaces (PSRF for SiRF, PGRM for
+Garmin, etc.)  your initializing control string will almost certainly
+be ignored by anything not specifically watching for it.</p>
+
+<h2 id="init">Initializing time and date</h2>
+
+<p>Some mode-changing commands have time field that initializes the GPS
+clock.  If the designers were smart, they included a control bit that
+allows the GPS to retain its clock value (and previous fix, if any)
+and for you to leave those fields empty (sometimes this is called "hot
+start").</p>
+
+<p>If the GPS-Week/TOW fields are required, as on the Evermore chip,
+don't just zero them.  GPSes do eventually converge on the correct
+time when they've tracked the code from enough satellites, but the
+time required for convergence is related to how far off the initial
+value is. Most modern receivers can cold start in 45 seconds given
+good reception; under suboptimal conditions this can take upwards of
+ten minutes. So make a point of getting the time of week right.</p>
+
+<h2 id="invocation">How drivers are invoked</h2>
+
+<p>Drivers are invoked in one of three ways: (1) when the NMEA driver
+notices a trigger string associated with another driver. (2) when the
+packet state machine in packet.c recognizes a special packet type, or
+(3) when a probe function returns true during device open.</p>
+
+<p>Each driver may have a trigger string that the NMEA interpreter
+watches for.  When that string is recognized at the start of a
+line, the interpreter switches to its driver.</p>
+
+<p>When a driver switch takes place, the old driver's wrapup method is
+called.  Then the new driver's initializer method is called.</p>
+
+<p>A good thing to send from the NMEA probe_subtype method is probe
+strings.  These are strings which should elicit an identifying
+response from the GPS that you can use as a trigger string for a
+native-mode driver.</p>
+
+<p>Don't worry about probe strings messing up GPSes they aren't meant for.
+In general, all GPSes have rather rigidly defined packet formats with
+checksums.  Thus, for this probe to look legal in a different binary
+command set, not only would the prefix and any suffix characters have
+to match, but the checksum algorithm would have to be identical.</p>
+
+<p>Incoming characters from the GPS device are gathered into packets
+by an elaborate state machine in packet.c.  The purpose of this
+state machine is so gpsd can autobaud and recognize GPS types
+automatically. The other way for a driver to be invoked is for
+the state machine to recognize a special packet type associated
+with the driver. It will look through the list of drivers compiled
+in to find the (first) one that handles that packet type.</p>
+
+<p>If you have to add a new packet type to packet.c, add tests for the
+type to the TESTMAIN code.</p>
+
+<p>Probe-detect methods are intended for drivers that don't use the packet
+getter because they read from a device with special kernel support.
+See the Garmin binary driver for an example.</p>
+
+<h3 id="reports">Where to put the data you get from the GPS</h3>
+
+<p>Your driver should put new data from each incoming packet or
+sentence in the 'gpsdata' member of the GPS (fixes go in the 'newdata'
+member), and return a validity flag mask telling what members were
+updated (all float members are initially set to not-a-number. as
+well).  There is driver-independent code that will be responsible for
+merging that new data into the existing fix.  To assist this, the
+CYCLE_START_SET flag is special.  Set this when the driver returns the
+first timestamped message containing fix data in an update cycle.
+(This excludes satellite-picture messages and messages about GPS
+status that don't contain fix data.)</p>
+
+<p>Your packet parser must return field-validity mask bits (using the
+_SET macros in gps.h), suitable to be put in session->gpsdata.valid.
+The watcher-mode logic relies on these as its way of knowing what to
+publish.  Also, you must ensure that gpsdata.fix.mode is set properly to
+indicate fix validity after each message; the framework code relies on
+this.  Finally, you must set gpsdata.status to indicate when DGPS
+fixes are available, whether through RTCM or WAAS/Egnos.</p>
+
+<p>Your packet parser is also responsible for setting the tag field
+in the gps_data_t structure.  This is the string that will be emitted
+as the first field of each $ record for profiling.  The packet getter
+will set the sentence-length for you; it will be raw byte length,
+including both payload and header/trailer bytes.</p>
+
+<p>Note, also, that all the timestamps your driver puts in the session
+structure should be UTC (with leap-second corrections) not just Unix
+seconds since the epoch.  The report-generator function for D
+does <em>not</em> apply a timezone offset.</p>
+
+<h3 id="confidence">Report errors with a 95% confidence interval</h3>
+
+<p>gpsd drivers are expected to report position error estimates with
+a 95% confidence interval.  A few devices (Garmins and Zodiacs)
+actually report error estimates.  For the rest we have to compute them
+using an error model.</p>
+
+<p>Here's a table that explains how to convert from various
+confidence interval units you might see in vendor documentation.</p>
+
+<div>&nbsp;</div>
+
+<table border='1'>
+<tr><td>sqr(alpha)</td><td>Probability</td><td>Notation</td></tr>
+<tr><td>1.00      </td><td>39.4%      </td><td>1-sigma or standard ellipse</td></tr>
+<tr><td>1.18      </td><td>50.0%      </td><td>Circular Error Probable (CEP)</td></tr>
+<tr><td>1.414     </td><td>63.2%      </td><td>Distance RMS (DRMS)</td></tr>
+<tr><td>2.00      </td><td>86.5%      </td><td>2 sigma ellipse</td></tr>
+<tr><td>2.45      </td><td>95.0%      </td><td>95% confidence level</td></tr>
+<tr><td>2.818     </td><td>98.2%      </td><td>2DRMS</td></tr>
+<tr><td>3.00      </td><td>98.9%      </td><td>3 sigma ellipse</td></tr>
+</table>
+
+<p>There are constants in gpsd.h for these factors.</p>
+
+<h3 id="logfiles">Log files for regression testing</h3>
+
+<p>Any time you add support for a new GPS type, you should also send us a
+representative log for your GPS.  This will help ensure that support
+for your device is never broken in any gpsd release, because we will
+run the full regression before we ship.</p>
+
+<p>The correct format for a capture file is described in the
+<a href='faq.html#logformat'>FAQ entry on reporting bugs</a>.</p>
+
+<p>See the header comment of the gpsfake.py module for more about the
+logfile format.</p>
+
+<p>An ideal log file for regression testing would include an initial
+portion during which the GPS has no fix, a portion during which it has
+a fix but is stationary, and a portion during which it is moving.</p>
+
+<h1 id="designahead">Future Protocol Directions</h1>
+
+<p>The new protocol based on <a href="http://www.json.org/">JSON</a>
+(JavaScript Object Notation) shipped in 2.90.</p>
+
+<p>A major virtue of JSON is its extensibility. There are
+<em>lots</em> of other things a sensor wedded to a GPS might report
+that don't fit the position-velocity-time model of the oldstyle O report.
+Depth of water.  Temperature of water.  Compass heading.  Roll.
+Pitch. Yaw.  We've already had requests to handle some of these for
+NMEA-emitting devices like magnetic compasses (which report heading
+via a proprietary TNTHTM sentence) and fish finders (which report
+water depth and temperature via NMEA DPT and MTW sentences). JSON
+gives a natural way to add ad-hoc fields, and we expect to
+exploit that in the future.</p>
+
+<h2 id="proposed">Proposed sentences:</h2>
+
+<p>Chris Kuethe has floated the following list requests for
+discussion:</p>
+
+<pre>
+?A .. ?Z -&gt; map to the original A..Z gpsd commands
+?almanac -&gt; poll the almanac from the receiver
+?ephemeris -&gt; poll the ephemeris from the receiver
+?assist -&gt; load assistance data (time, position, etc) into the receiver
+?raw -&gt; get a full dump of the last measurement cycle... at least
+           clock, doppler, pseudorange and carrier phase.
+?readonly -&gt; get/set read-only mode. no screwing up bluetooth devices
+?listen -&gt; set the daemon's bind address. added privacy for laptop users.
+?port -&gt; set the daemon's control port used by the regression
+            tests, at least.
+?debug -&gt; set/modify the daemon's debug level, including after launch.
+</pre>
+
+<h1 id="blindalleys">Blind alleys</h1>
+
+<p>Things we've considered doing and rejected.</p>
+
+<h2 id="oncepercycle">Reporting fix data only once per cycle</h2>
+
+<p>See the discussion of the buffering problem, above.  The "Buffer all,
+report then clear on start-of-cycle" policy would introduce an
+unpleasant amount of latency.  gpsd actually uses the "Buffer all,
+report on every packet, clear at start-of-cycle" policy.</p>
+
+<h2 id="shipstrings">Allowing clients to ship arbitrary control strings to a GPS</h2>
+
+<p>Tempting &mdash; it would allow us to do gpsmon-like things with the
+daemon running &mdash; but a bad idea.  It would make denial-of-service
+attacks on applications using the GPS far too easy.  For example,
+suppose the control string were a baud-rate change?</p>
+
+<h2 id="fifo">Setting FIFO threshold to 1 to reduce jitter in serial-message times</h2>
+
+<p>When using gpsd as a time reference, one of the things we'd like to do
+is make the amount of lag in the message path from GPS to GPS small
+and with as little jitter as possible, so we can correct for it with
+a constant offset.</p>
+
+<p>A possibility we considered is to set the FIFO threshold on the serial
+device UART to 1 using TIOCGSERIAL/TIOCSSERIAL.  This would, in
+effect, disable transmission buffering, increasing lag but decreasing
+jitter.</p>
+
+<p>But it's almost certainly not worth the work.  Rob Janssen, our timekeeping
+expert, reckons that at 4800bps the UART buffering can cause at most
+about 15msec of jitter.  This is, observably, swamped by other less
+controllable sources of variation.</p>
+
+<h2 id="utc-tai">Stop using a compiled-in UTC-TAI offset</h2>
+
+<p>Instead, from the hotplug script, we could maintain a local offset file:</p>
+
+<ol>
+<li>If there is no local offset file, download the current leap-second
+offset from <a href='http://hpiers.obspm.fr/iers/bul/bulc/'>IERS</a>
+or <a href="ftp://maia.usno.navy.mil/ser7/tai-utc.dat">the U.S. Naval
+Observatory</a> and copy it to a local offset file</li>
+
+<li>If there is a local offset file, consider it stale after five
+months and reload it.</li>
+
+<li>gpsd should read the local offset file when it starts up, if
+it exists.</li>
+</ol>
+
+<p>However, it turns out this is only an issue for EverMore chips.  SiRF GPSes
+can get the offset from the PPS or subframe data; NMEA GPSes don't
+need it; and the other binary protocols supply it.  Looks like
+it's not worth doing.</p>
+
+<h2 id='subsecond'>Subsecond polling</h2>
+
+<p>gpsd relies on the GPS to periodically send TPV reports to it.  A
+few GPSes have the capability to change their cycle time so they can
+ship reports more often (gpsd 'c' command). These all send in some
+vendor-binary format; no NMEA GPS I've ever seen allows you to set a
+cycle time of less than a second, if only because at 4800bps, a full
+TPV report takes just under one second in NMEA.</p>
+
+<p>But most GPSes send TPV reports once a second. At 50km/h (31mi/h)
+that's 13.8 meters change in position between updates, about the same
+as the uncertainty of position under typical conditions.</p>
+
+<p>There is, however, a way to sample some GPSes at higher frequency.  SiRF
+chips, and some others, allow you to shut down periodic notifications
+and poll them for TPV.  At 57600bps we could poll a NMEA GPS 16 times
+a second, and a SiRF one maybe 18 times a second.</p>
+
+<p>Alas, Chris Kuethe reports: "At least on the SiRF 2 and 3 receivers
+I have, you get one fix per second. I cooked up a test harness to
+disable as many periodic messages as possible and then poll as quickly
+as possible, and the receiver would not kick out more than one fix per
+second. Foo!"</p>
+
+<p>So subsecond polling would be a blind alley for all SiRF devices
+and all NMEA devices. That's well over 90% of cases and renders it
+not worth doing.</p>
+
+<h1 id='release'>Release Procedure</h1>
+
+<p>First, defining some terms.  There are three tiers of code in our tarballs.
+Each has a different risk profile.</p>
+
+<h3>1) Exterior code</h3>
+
+<p>Test clients and test tools: <code>xgps</code>, <code>cgps</code>,
+<code>gpsfake</code>, <code>gpsprof</code>, <code>gpsmon</code>, etc.
+These are at low risk of breakage and are easy to eyeball-check for
+correctness -- when they go wrong they tend to do so in obvious ways.
+Point errors in a tool don't compromise the other tools or the
+daemon.</p>
+
+<h3>2) Device drivers</h3>
+
+<p>Drivers for the individual GPS device types.  Errors in a driver can
+be subtle and hard to detect, but they generally break support for one
+class of device without affecting others.  Driver maintainers can test
+their drivers with high confidence.</p>
+
+<h3>3) Core code</h3>
+
+<p>Core code is shared among all device types; most notably, it includes
+the packet-getter state machine, the channel-management logic, and
+the error-modeling code.  Historically these are the three most
+bug-prone areas in the code.</p>
+
+<p>We also need to notice that there are two different kinds of devices
+with very different risk profiles:</p>
+
+<p>A) Static-testable: These are devices like NMEA and SiRF chipsets that
+can be effectively simulated with a test-load file using gpsfake.  We
+can verify these with high confidence using a mechanical regression test.</p>
+
+<p>B) The problem children: Currently this includes Garmin USB and the
+PPS support.  In the future it must include any other devices
+that aren't static-testable.  When the correctness of drivers and core
+code in handling is suspect, they have to be live-tested by someone
+with access to the actual device.</p>
+
+<p>The goal of our release procedure is simple: prevent functional progressions.
+No device that worked in release N should break in release N+1.  Of course
+we also want to prevent shipping broken core code.</p>
+
+<p>For static-testable devices this is fairly easy to ensure.  Now that
+we've fixed the problems with ill-conditioned floating-point, the
+regression-test suite does a pretty good job of exercising those
+drivers and the related core code and producing repeatable results.
+Accordingly, I'm fairly sure we will never again ship a release with
+serious breakage on NMEA or SiRF devices.</p>
+
+<p>The problem children are another matter.  Right now our big exposure
+here is Garmins, but we need to have good procedure in case we get
+our TnT support unbroken and for other ill-behaved devices we might
+encounter in the future.</p>
+
+<p>Here are the new release-readiness states:</p>
+
+<p>State 0 (red): There are known blocker bugs,  Blocker bugs include functional
+regressions in core or driver code.  </p>
+
+<p>State 1 (blue): There are no known blocker bugs.  'make
+testregress' passes, but problem-children (USB Garmin and serial PPS)
+have not been live-tested.</p>
+
+<p>State 2 (yellow): There are no known blocker bugs.  'make testregress'
+passes.  Problem children have been live-tested.  From this state, we
+drop back to state 1 if anyone commits a logic change to core code or
+the driver for a problem child.  In state 2, devs with release
+authority (presently myself, Chris, and Gary) may ship a release
+candidate at any time.</p>
+
+<p>State 3 (green): We've been in state 2 for 7 days.  In state 3, a dev
+with release authority can call a freeze for release.</p>
+
+<p>State 4: (freeze): No new features that could destabilize existing code.
+Release drops us to state 3.</p>
+
+<p>When you do something that changes our release state -- in particular,
+when you commit a patch that touches core or a problem-child driver
+at state 2 -- you must notify the dev list.</p>
+
+<p>Anyone notifying the list of a blocker bug drops us back to state 0.</p>
+
+<p>When you announce a state change on the dev list, do it like this:</p>
+
+<pre>
+     Red light: total breakage in Garmin USB, partial breakage in Garmin serial
+     Blue light: no known blockers, cosmetic problems in xgps
+     Yellow light: Garmins tested successfully 20 Dec 2007
+     Green light: I'm expecting to call freeze in about 10 days
+     Freeze: Scheduled release date 1 Feb 2008
+</pre>
+
+<h2>Release Checklist</h2>
+
+<p>This is a reminder for release engineers preparing to ship a public
+<code>gpsd</code> version.  Release requires the following steps in
+the following order:</p>
+
+<dl>
+<dt>1. Check the <a
+href="http://developer.berlios.de/bugs/?group_id=2116">Berlios bug
+tracker</a> for release blockers.</dt>  <dd></dd>
+
+<dt>2. Issue the pre-release heads-up</dt>
+<dd>About 48 hours before release, announce that it's coming so people
+will have a day or so to get their urgent fixes in.</dd>
+
+<dt>3. Code pull from the public repo</dt>
+<dd>This is the revision the release will be built from.</dd>
+
+<dt>4. Check that the version number is correct</dt>
+<dd>It will need to be modified in SConstruct.  Make sure the 'dev' 
+suffix is gone.</dd>
+
+<dt>5. Rebuild leapcheck.cache.</dt>  
+<dd>Rebuild the leap-second list
+used for rollover checks with 'scons leapseconds.cache' Note: This will
+require Internet access, and fail (leaving the existing leap-second
+list in place) if that is not available.</dd>
+
+<dt>6. Fix compiler and scan-build warnings.</dt>
+<dd>Look for compiler and <a
+href="http://devel.recluse.de/~bzed/scan-build/gpsd/">scan-build</a>
+warnings and fix them.</dd>
+
+<dt>7. Update the NEWS file</dt>
+<dd>Make sure the topmost entry in the changelog portion of
+gpsd.spec.in is up-to-date and properly timestamped.</dd>
+
+<dt>8. Run the regression tests and other checks</dt>
+<dd>If it doesn't pass regressions, it isn't ready to ship.
+<ol>
+<li>scons testbuild</li>
+<li>scons testregress</li>
+<li>scons splint</li>
+<li>scons cppcheck</li>
+<li>scons xmllint</li>
+<li>scons valgrind-audit</li>
+<li>devtools/flockest</li>
+</ol>
+</dd>
+
+<dt>9. Ship to Berlios</dt>
+<dd>Make the tarball (scons dist) and upload to berlios.de (make upload-ftp),
+and do Berlios's
+<a href="https://developer.berlios.de/project/admin/?group_id=2116">release procedure</a>.</dd>
+
+<dt>10. Tag the release in git</dt>
+<dd>Doing 'make release-tag' should accomplish this. The tag push
+will trigger mail to the announce list.</dd>
+
+<dt>11. Bump the release number and push that commit</dt>
+<dd>Bump the release number in configure.ac, adding a '~dev' suffix
+so tarball instances pulled from the repo will be clearly
+distinguishable from the next public release.</dd>
+
+<dt>12. Announce the release</dt>
+<dd>Announce the release, and the resumption of regular commits, on
+the dev list.</dd>
+</dl>
+
+<h2>Packaging links</h2>
+
+<p><a
+href='http://git.recluse.de/?p=debian/pkg-gpsd.git;a=summary'>Debian
+build controls</a></p>
+
+</div>
+<hr/> <script src="datestamp.js" type='text/javascript'></script>
+</body>
+</html>
+<!--
+Local Variables:
+compile-command: "./upload hacking.html"
+End:
+-->

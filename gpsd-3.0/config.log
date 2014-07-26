@@ -1,0 +1,227 @@
+file /home/pi/gpsd-3.0/SConstruct,line 314:
+	Configure(confdir = .sconf_temp)
+scons: Configure: Checking whether the C++ compiler works
+scons: Configure: ".sconf_temp/conftest_0.cpp" is up to date.
+scons: Configure: The original builder output was:
+  |.sconf_temp/conftest_0.cpp <-
+  |  |
+  |  |int main()
+  |  |{
+  |  |    return 0;
+  |  |}
+  |  |
+  |
+scons: Configure: ".sconf_temp/conftest_0.o" is up to date.
+scons: Configure: The original builder output was:
+  |g++ -o .sconf_temp/conftest_0.o -c -O2 .sconf_temp/conftest_0.cpp
+  |
+scons: Configure: (cached) yes
+
+scons: Configure: Checking for C function daemon()... 
+scons: Configure: ".sconf_temp/conftest_1.c" is up to date.
+scons: Configure: The original builder output was:
+  |.sconf_temp/conftest_1.c <-
+  |  |
+  |  |
+  |  |#include <assert.h>
+  |  |
+  |  |#ifdef __cplusplus
+  |  |extern "C"
+  |  |#endif
+  |  |char daemon();
+  |  |
+  |  |int main() {
+  |  |#if defined (__stub_daemon) || defined (__stub___daemon)
+  |  |  fail fail fail
+  |  |#else
+  |  |  daemon();
+  |  |#endif
+  |  |
+  |  |  return 0;
+  |  |}
+  |  |
+  |
+scons: Configure: ".sconf_temp/conftest_1.o" is up to date.
+scons: Configure: The original builder output was:
+  |gcc -o .sconf_temp/conftest_1.o -c -Wextra -Wall -Wno-uninitialized -Wno-missing-field-initializers -Wcast-align -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wpointer-arith -Wreturn-type -Wimplicit-function-declaration -D_GNU_SOURCE -O2 .sconf_temp/conftest_1.c
+  |
+scons: Configure: ".sconf_temp/conftest_1" is up to date.
+scons: Configure: The original builder output was:
+  |gcc -o .sconf_temp/conftest_1 -Wl,-rpath=/home/pi/gpsd-3.0 -Wl,-rpath=/usr/local/lib .sconf_temp/conftest_1.o -L. -L/usr/local/lib
+  |
+scons: Configure: (cached) yes
+
+scons: Configure: Checking for C function strlcpy()... 
+scons: Configure: ".sconf_temp/conftest_2.c" is up to date.
+scons: Configure: The original builder output was:
+  |.sconf_temp/conftest_2.c <-
+  |  |
+  |  |
+  |  |#include <assert.h>
+  |  |
+  |  |#ifdef __cplusplus
+  |  |extern "C"
+  |  |#endif
+  |  |char strlcpy();
+  |  |
+  |  |int main() {
+  |  |#if defined (__stub_strlcpy) || defined (__stub___strlcpy)
+  |  |  fail fail fail
+  |  |#else
+  |  |  strlcpy();
+  |  |#endif
+  |  |
+  |  |  return 0;
+  |  |}
+  |  |
+  |
+scons: Configure: ".sconf_temp/conftest_2.o" is up to date.
+scons: Configure: The original builder output was:
+  |gcc -o .sconf_temp/conftest_2.o -c -Wextra -Wall -Wno-uninitialized -Wno-missing-field-initializers -Wcast-align -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wpointer-arith -Wreturn-type -Wimplicit-function-declaration -D_GNU_SOURCE -O2 .sconf_temp/conftest_2.c
+  |
+scons: Configure: Building ".sconf_temp/conftest_2" failed in a previous run and all its sources are up to date.
+scons: Configure: The original builder output was:
+  |gcc -o .sconf_temp/conftest_2 -Wl,-rpath=/home/pi/gpsd-3.0 -Wl,-rpath=/usr/local/lib .sconf_temp/conftest_2.o -L. -L/usr/local/lib
+  |
+scons: Configure: (cached) no
+
+scons: Configure: Checking for C function strlcat()... 
+scons: Configure: ".sconf_temp/conftest_3.c" is up to date.
+scons: Configure: The original builder output was:
+  |.sconf_temp/conftest_3.c <-
+  |  |
+  |  |
+  |  |#include <assert.h>
+  |  |
+  |  |#ifdef __cplusplus
+  |  |extern "C"
+  |  |#endif
+  |  |char strlcat();
+  |  |
+  |  |int main() {
+  |  |#if defined (__stub_strlcat) || defined (__stub___strlcat)
+  |  |  fail fail fail
+  |  |#else
+  |  |  strlcat();
+  |  |#endif
+  |  |
+  |  |  return 0;
+  |  |}
+  |  |
+  |
+scons: Configure: ".sconf_temp/conftest_3.o" is up to date.
+scons: Configure: The original builder output was:
+  |gcc -o .sconf_temp/conftest_3.o -c -Wextra -Wall -Wno-uninitialized -Wno-missing-field-initializers -Wcast-align -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wpointer-arith -Wreturn-type -Wimplicit-function-declaration -D_GNU_SOURCE -O2 .sconf_temp/conftest_3.c
+  |
+scons: Configure: Building ".sconf_temp/conftest_3" failed in a previous run and all its sources are up to date.
+scons: Configure: The original builder output was:
+  |gcc -o .sconf_temp/conftest_3 -Wl,-rpath=/home/pi/gpsd-3.0 -Wl,-rpath=/usr/local/lib .sconf_temp/conftest_3.o -L. -L/usr/local/lib
+  |
+scons: Configure: (cached) no
+
+scons: Configure: Checking for ncurses... 
+scons: Configure: ".sconf_temp/conftest_4" is up to date.
+scons: Configure: The original builder output was:
+  |pkg-config --exists 'ncurses'
+  |
+scons: Configure: (cached) yes
+
+scons: Configure: Checking for libusb-1.0... 
+scons: Configure: ".sconf_temp/conftest_5" is up to date.
+scons: Configure: The original builder output was:
+  |pkg-config --exists 'libusb-1.0'
+  |
+scons: Configure: (cached) yes
+
+scons: Configure: Checking for C library librt... 
+scons: Configure: ".sconf_temp/conftest_6.c" is up to date.
+scons: Configure: The original builder output was:
+  |.sconf_temp/conftest_6.c <-
+  |  |
+  |  |
+  |  |
+  |  |int
+  |  |main() {
+  |  |  
+  |  |return 0;
+  |  |}
+  |  |
+  |
+scons: Configure: ".sconf_temp/conftest_6.o" is up to date.
+scons: Configure: The original builder output was:
+  |gcc -o .sconf_temp/conftest_6.o -c -Wextra -Wall -Wno-uninitialized -Wno-missing-field-initializers -Wcast-align -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wpointer-arith -Wreturn-type -Wimplicit-function-declaration -D_GNU_SOURCE -O2 .sconf_temp/conftest_6.c
+  |
+scons: Configure: ".sconf_temp/conftest_6" is up to date.
+scons: Configure: The original builder output was:
+  |gcc -o .sconf_temp/conftest_6 -Wl,-rpath=/home/pi/gpsd-3.0 -Wl,-rpath=/usr/local/lib .sconf_temp/conftest_6.o -L. -L/usr/local/lib -lrt
+  |
+scons: Configure: (cached) yes
+
+scons: Configure: Checking for bluez... 
+scons: Configure: ".sconf_temp/conftest_7" is up to date.
+scons: Configure: The original builder output was:
+  |pkg-config --exists 'bluez'
+  |
+scons: Configure: (cached) yes
+
+scons: Configure: Checking for C header file sys/timepps.h... 
+scons: Configure: ".sconf_temp/conftest_8.c" is up to date.
+scons: Configure: The original builder output was:
+  |.sconf_temp/conftest_8.c <-
+  |  |
+  |  |#include <sys/timepps.h>
+  |  |
+  |  |
+  |
+scons: Configure: ".sconf_temp/conftest_8.o" is up to date.
+scons: Configure: The original builder output was:
+  |gcc -o .sconf_temp/conftest_8.o -c -Wextra -Wall -Wno-uninitialized -Wno-missing-field-initializers -Wcast-align -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wpointer-arith -Wreturn-type -Wimplicit-function-declaration -D_GNU_SOURCE -O2 .sconf_temp/conftest_8.c
+  |
+scons: Configure: (cached) yes
+
+scons: Configure: Checking for chrpath... 
+scons: Configure: ".sconf_temp/conftest_9" is up to date.
+scons: Configure: The original builder output was:
+  |chrpath -v
+  |
+scons: Configure: (cached) yes
+
+scons: Configure: Checking for C library libbluetooth... 
+scons: Configure: ".sconf_temp/conftest_10.c" is up to date.
+scons: Configure: The original builder output was:
+  |.sconf_temp/conftest_10.c <-
+  |  |
+  |  |
+  |  |
+  |  |int
+  |  |main() {
+  |  |  
+  |  |return 0;
+  |  |}
+  |  |
+  |
+scons: Configure: ".sconf_temp/conftest_10.o" is up to date.
+scons: Configure: The original builder output was:
+  |gcc -o .sconf_temp/conftest_10.o -c -Wextra -Wall -Wno-uninitialized -Wno-missing-field-initializers -Wcast-align -Wmissing-declarations -Wmissing-prototypes -Wstrict-prototypes -Wpointer-arith -Wreturn-type -Wimplicit-function-declaration -D_GNU_SOURCE -O2 .sconf_temp/conftest_10.c
+  |
+scons: Configure: ".sconf_temp/conftest_10" is up to date.
+scons: Configure: The original builder output was:
+  |gcc -o .sconf_temp/conftest_10 -Wl,-rpath=/home/pi/gpsd-3.0 -Wl,-rpath=/usr/local/lib .sconf_temp/conftest_10.o -L. -L/usr/local/lib -lrt -lbluetooth
+  |
+scons: Configure: (cached) yes
+
+scons: Configure: Checking that xsltproc can make man pages... 
+scons: Configure: ".sconf_temp/conftest_11" is up to date.
+scons: Configure: The original builder output was:
+  |xsltproc --nonet --noout 'http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl' xmltest.xml
+  |
+scons: Configure: (cached) yes
+
+scons: Configure: Checking for QtNetwork... 
+scons: Configure: ".sconf_temp/conftest_12" is up to date.
+scons: Configure: The original builder output was:
+  |pkg-config --exists 'QtNetwork'
+  |
+scons: Configure: (cached) yes
+
+

@@ -1,0 +1,192 @@
+#!/bin/sh
+#
+# The regression-test driver script.  This used to be explicit in the
+# makefile before we regrouped the regression tests by stable and unstable
+# drivers.
+
+# Requires GNU date extensions
+# Should return an empty blank string if those are not present.
+starttime=`date +"%s" 2>/dev/null`
+
+# We need to have the build directory in $GPSD_HOME to find the new gpsd
+if [ "`dirname $0`" = "." ]; then
+    GPSD_HOME=`pwd`
+else
+    GPSD_HOME=`dirname $0`
+fi
+
+# Arrange to call a gpsfake in the source directory without fuss.
+if [ -z ${PYTHON} ]; then
+    PYTHON="python"
+fi
+# For an explanation of what we define here, see the comment on
+# PYTHON_DISTUTILS_LIBDIR/PYTHON_DISTUTILS_SCRIPTDIR in configure.ac
+py_libdir=`pwd`/build/`${PYTHON} -c 'import distutils.util; import sys; print("lib.%s-%s" %(distutils.util.get_platform(), sys.version[0:3]))'`
+py_scriptdir=`pwd`/build/`${PYTHON} -c 'import sys; print("scripts-%s" %(sys.version[0:3], ))'`
+if [ -d ${py_libdir} ] && [ -d ${py_scriptdir} ]; then
+    PYTHONPATH=${py_libdir}
+    export PYTHONPATH
+
+    PATH=${py_scriptdir}:${PATH}
+fi
+export GPSD_HOME PATH
+
+mode=regress
+testing=daemon
+opts=""
+logfile=""
+help="0"
+while getopts cl:strbuvo:h opt
+do
+    case $opt in
+	c) testing=clientlib ;;	# Can be 'daemon'
+	l) logfile=$OPTARG ;;	# Logfile to save diffs to
+	s) mode=regress ;;	# Run regression tests
+	t) opts="-b $opts" mode=regress ;;	# Run regression tests w/baton
+	r) mode=superraw ;;	# Run superraw regressions (r=2 mode)
+	b) mode=build ;;	# Rebuild regression check files
+	u) opts="$opts -u" ;;	# Force UDP
+	v) mode=view ;;		# View result of generating a check file
+	o) opts="$opts $OPTARG" ;;	# Pass options to gpsfake
+	h) help="1"
+    esac
+done
+shift $(($OPTIND - 1))
+
+if [ $help -eq "1" ]
+then
+	echo
+	echo
+	echo "Regression test driver script"
+	echo "-h  - this help"
+	echo "-c  - can be 'daemon'"
+	echo "-l <filename>  - where to log diffs to"
+	echo "-s  - run regreession tests"
+	echo "-t <ots>  - Run regression tests w/baton"
+	echo "-r  - run superraw regressions (r=2 mode)"
+	echo "-b  - Rebuild regression check files"
+	echo "-u <opt> - Force UDP"
+	echo "-v  - view result of generating a check file"
+	echo "-o <opt> - Pass options to gpsfake"
+	echo
+
+	exit 0
+fi
+
+# Enables us to turn debugging up high without screwing up the diff checks
+# First and Second filter out gpsd log messages.
+# Third filters out gps.py verbose loggging
+# Fourth filters out WATCH responses
+# Fifth filters out DEVICE responses
+# Sixth filters out VERSION responses
+# Seventh filters out device fields
+GPSFILTER="sed -e /^gpsd:/d -e /^gpsfake/d -e /GPS-DATA/d -e /WATCH/d -e /DEVICE/d -e /VERSION/d -e s/,\"device\":[^,}]*//"
+
+# Use ALTFILTER to set up custom filtering when a regression test fails
+# This example filters out altitude and some fields computed by gpsd's error
+# modeling - these are fragile in the prsence of changes to the fix-buffering
+# logic. Note that as the last attribute mode needs to be handled differently.
+#ALTFILTER="-e s/\"alt\":[^,]*,// -e s/\"ep[vhs]\":[-+0-9.]*// -e s/,\"mode\":[^}]*//"
+
+TMP=/tmp
+
+# Only twirl the baton on a tty, avoids junk in transcripts.
+if [ -t 1 ]
+then
+    opts="$opts -b"
+fi
+
+case $mode in
+    regress)
+        echo "Testing the $testing..." >&2
+        errors=0; total=0; notfound=0;error_list="";
+        for f in $*; do
+	    if [ -r $f.chk ]
+	    then
+		trap 'rm -f ${TMP}/test-$$.chk; exit $errors' EXIT HUP INT TERM
+		case $testing in
+		daemon) ${PYTHON} ${GPSD_HOME}/gpsfake -s 38400 -f -1 -p $opts ${f} | ${GPSFILTER} ${ALTFILTER} >${TMP}/test-$$.chk ;;
+		clientlib) ${GPSD_HOME}/test_libgps -b <${f} >${TMP}/test-$$.chk ;;
+		esac
+		if [ "${ALTFILTER}" ]
+		then
+		    trap 'rm -f ${TMP}/test-$$.chk ${TMP}/testout-$$.chk ${TMP}/testin-$$.chk ${TMP}/diff-$$; exit $errors' EXIT HUP INT TERM
+		    sed -n <${f}.chk >${TMP}/testin-$$.chk ${ALTFILTER} -e 'p';
+		    sed -n <${TMP}/test-$$.chk >${TMP}/testout-$$.chk ${ALTFILTER} -e 'p';
+		    diff -ub ${TMP}/testin-$$.chk ${TMP}/testout-$$.chk >${TMP}/diff-$$;
+		else
+		    diff -ub ${f}.chk ${TMP}/test-$$.chk >${TMP}/diff-$$;
+		fi
+		if test -s ${TMP}/diff-$$ ; then
+		    errors=`expr $errors + 1`;
+                    error_list="$error_list \"${f}\""
+		    if [ -z "$logfile" ]
+		    then
+			cat ${TMP}/diff-$$
+		    else
+			cat ${TMP}/diff-$$ >>$logfile
+		    fi
+		fi;
+		rm -f ${TMP}/test-$$.chk ${TMP}/testout-$$.chk ${TMP}/testin-$$.chk ${TMP}/diff-$$
+	    else
+		echo "*** No check log $f.chk exists"
+		notfound=`expr $notfound + 1`;
+	    fi
+	    total=`expr $total + 1`;
+        done;
+        if test $errors -gt 0; then
+            echo "Regression test FAILED: $errors errors in $total tests total ($notfound not found).";
+            echo "The following test Failed:"
+            echo "================================================================"
+            for err in $error_list
+            do
+		echo $err
+            done
+            echo "================================================================"
+            status=1;
+        else
+            echo "Regression test successful: no errors in $total tests ($notfound not found).";
+            status=0;
+        fi
+        ;;
+    superraw)
+        echo "Testing super-raw mode..." >&2
+        for f in $*; do
+            ${PYTHON} ${GPSD_HOME}/gpsfake -s 38400 -1 -p $opts -r '{"class":"WATCH","enable":False,"raw":2}' $opts ${f} \
+            | ./devtools/striplog -1 >${TMP}/test1-$$.chk;
+            ./devtools/striplog <${f} >${TMP}/test2-$$.chk;
+            cmp ${TMP}/test[12]-$$.chk;
+        done; rm ${TMP}/test[12]-$$.chk
+        ;;
+    build)
+	echo "Rebuilding $testing regressions..." >&2
+        for f in $*; do
+	    case $testing in
+            daemon) ${PYTHON} ${GPSD_HOME}/gpsfake -s 38400 -1 -p $opts ${f} | ${GPSFILTER} >${f}.chk;;
+	    clientlib) ${GPSD_HOME}/test_libgps -b <${f} >${f}.chk ;;
+            esac
+        done
+        status=0
+        ;;
+    view)
+        echo "Viewing..." >&2
+        for f in $*; do
+	    case $testing in
+            daemon) ${PYTHON} ${GPSD_HOME}/gpsfake -s 38400 -1 -p $opts ${f} | ${GPSFILTER} ;;
+            clientlib) ${GPSD_HOME}/libgps -b <${f} ;;
+            esac
+        done
+        status=0
+        ;;
+esac
+
+# See starttime above
+endtime=`date +"%s" 2>/dev/null`
+
+if [ "$starttime" -a "$endtime" ]
+then
+    echo -n "Elapsed time: "
+    echo "scale=2; ${endtime} - ${starttime}" | bc
+fi
+
+exit $status

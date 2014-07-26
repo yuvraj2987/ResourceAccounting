@@ -1,0 +1,75 @@
+'\" t
+.\"     Title: gpsdctl
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 25 Jun 2011
+.\"    Manual: GPSD Documentation
+.\"    Source: The GPSD Project
+.\"  Language: English
+.\"
+.TH "GPSDCTL" "1" "25 Jun 2011" "The GPSD Project" "GPSD Documentation"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+gpsdctl
+.SH "SYNOPSIS"
+.HP \w'\fBgpdsctl\fR\ 'u
+\fBgpdsctl\fR \fIaction\fR \fIdevice\fR
+.SH "DESCRIPTION"
+.PP
+This is a tool for sending an instance of
+gpsd
+commands over its control socket to add or remove devices from the daemon\*(Aqs device list\&. It is not intended to be called by users, but rather by the Linux hotplug system and similar facilities\&.
+.PP
+The action argument may be "add" or "remove"\&. If no daeon instance is running when an add is requested, this program will launch one\&.
+.PP
+The "device" argument should be the pathname of a device\&. A device on the list will be opened to read sensor data whenever a client requests a watch\&.
+.PP
+Two environment variables are interpreted\&.
+\fBGPSD_SOCKET\fR
+sets the location of the control socket\&. It defaults to
+/var/run/gpsd\&.sock\&.
+.PP
+\fBGPSD_OPTIONS\fR
+may be a list of options to be passed to
+gpsd
+when this tool launches it\&. It defaults to an empty string\&.
+.SH "SEE ALSO"
+.PP
+
+\fBgpsd\fR(8),
+\fBgpsctl\fR(1),
+\fBgps\fR(1),
+\fBlibgps\fR(3),
+\fBlibgpsd\fR(3),
+\fBgpsprof\fR(1),
+\fBgpsfake\fR(1)\&.
+.SH "AUTHOR"
+.PP
+Eric S\&. Raymond
+esr@thyrsus\&.com\&. There is a project page for
+gpsd
+\m[blue]\fBhere\fR\m[]\&\s-2\u[1]\d\s+2\&.
+.SH "NOTES"
+.IP " 1." 4
+here
+.RS 4
+\%http://gpsd.berlios.de/
+.RE
