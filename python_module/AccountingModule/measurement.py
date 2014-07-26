@@ -3,6 +3,7 @@ import threading
 import socket
 import time
 import sys, os
+import traceback
 #Custome Modules
 import eventReadModule
 import timeModule
@@ -25,9 +26,26 @@ REG_POWER = 0x03
 REG_CURRENT = 0x04
 REG_CALIB = 0x05
 ##### Global variables
+def convert_time(tmStr):
+	tm_list = tmStr.split(".")
+	#print "split time", str(tm_list)
 
-def get_time(ts=timeModule.time()):
-  ret = ts[0] + (ts[1]+0.0)/1000000000
+	tm = [0.0, 0.0]
+	tm[0]  = float(tm_list[0])
+	tm[1]  = float(tm_list[1])
+
+	ret = tm[0] + (tm[1]+0.0)/1000000000
+	return ret
+
+
+# gets current time of CLOCK_MONOTONIC
+# returns time in [0] seconds and [1] nanoseconds
+# this def returns the seconds from CLOCK_MONOTONIC
+# ts[1] is divided by large number to convert it to seconds
+# 1000000000 ns = 1 second
+def get_time():
+  ts=timeModule.time()
+  ret = ts[0]+(ts[1]+0.0)/1000000000
   return ret
 
 def saveRecords_power(records,fileName):
@@ -70,8 +88,13 @@ def getProcessName(port):
 		    pid = ""
 	else:
 		#print "lines are less than 2"
-		cols = lines[1].split()
-		processName, pid = cols[:2]
+		#added by kyle
+		try:
+			cols = lines[1].split()
+			processName, pid = cols[:2]
+		except:
+			processName = ""
+			pid = ""
 	#print "process:%s\t pid:%s"%(processName, pid)
   	return processName, pid
 #####
@@ -176,23 +199,24 @@ class measureThread (threading.Thread):
 
 def main():
 	print "--- main starts  ---"
-	startTime = get_time()
-	myFile_power = "log/log_"+time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(startTime))+"_power.log"
-	myFile_socket = "log/log_"+time.strftime("%Y_%m_%d_%H_%M_%S",time.localtime(startTime))+"_socket.log"
+	reference_time=get_time()
+	start_time = time.time()
+	myFile_power = "../log/log_"+time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(start_time))+"_power.log"
+	myFile_socket = "../log/log_"+time.strftime("%Y_%m_%d_%H_%M_%S",time.localtime(start_time))+"_socket.log"
 	bus.write_word_data(DEVICE_ADDRESS, 0x00, 0x9F08)
 	print "power log file set to "+myFile_power
 	print "socket log file set to "+myFile_socket
 
 	with file(myFile_socket, "a+") as fd:
-		fd.write("%.6f # # #\n" % startTime)
+		fd.write("%.6f # # #\n" % reference_time)
 
 
 	print "--- running measureThread ----"
 	
-        thread_measure = measureThread(startTime, myFile_power)
-        #thread_events  = eventReadModule.EventLogThread(startTime)
-        thread_measure.start()
-        #thread_events.start()
+	thread_measure = measureThread(reference_time, myFile_power)
+	#thread_events  = eventReadModule.EventLogThread(reference_time)
+	thread_measure.start()
+	#thread_events.start()
 
 	print "--- starting server ---"
 
@@ -214,18 +238,11 @@ def main():
 				print "Received following message\n", receiveStr
 				recordType, port, tmStr = receiveStr.split("|")
 				process, pid = getProcessName(port)
-				print "Got process name"
-				tm_list = tmStr.split(".")
-				#print "split time", str(tm_list)
-				
-				tm = [0.0, 0.0]
-				tm[0]  = float(tm_list[0])
-				tm[1]  = float(tm_list[1])
-				print "Time from gps:", str(tm)
-			
-				nowTime = get_time(tm) 
-				print "Got start time"
-				strTime = "%.6f" % (nowTime - startTime)
+				print "Got process name: ", process, " | ", pid
+				nowTime = convert_time(tmStr) 
+				print "Time from gpsd:", str(nowTime)
+				strTime = "%.6f" % (nowTime - reference_time)
+				print "Got start time: ", str(strTime)
 			
 				myArray_socket = [str(strTime), str(recordType), str(process), str(pid)]
 				dummyArray = myArray_socket
@@ -237,6 +254,7 @@ def main():
 			except:
 				print "Exception in socket communication"
 				print "Close the socket"
+				print traceback.format_exc()
 				mySocket.close()
 				raise
 	        
@@ -259,9 +277,15 @@ def main():
 	print "--- end of program ---"
 
 def test():
+  startTime = get_time()
+  print startTime
+  print time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(startTime))
+  print "--------"
   print "Testting timestamp"
   print "Cur time from timeModule", timeModule.time()
   print "get_time: ", get_time()
+  print "time.time()", time.time()
+  print "original : ", time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(time.time()))
 #####
 
 if __name__ == "__main__":
