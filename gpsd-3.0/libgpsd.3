@@ -1,0 +1,112 @@
+'\" t
+.\"     Title: 3
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 14 Aug 2004
+.\"    Manual: GPSD Documentation
+.\"    Source: The GPSD Project
+.\"  Language: English
+.\"
+.TH "3" "3" "14 Aug 2004" "The GPSD Project" "GPSD Documentation"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+libgpsd \- service library for GPS applications
+.SH "SYNOPSIS"
+.sp
+.ft B
+.nf
+C:
+
+#include <gpsd\&.h>
+
+.fi
+.ft
+.HP \w'int\ gpsd_open_dgps('u
+.BI "int gpsd_open_dgps(char\ *\ " "dgpsserver" ");"
+.HP \w'void\ gpsd_init('u
+.BI "void gpsd_init(struct\ gps_device_t\ *" "session" ", struct\ *\ " "gps_context_t\ *" ", char\ *\ " "device" ");"
+.HP \w'int\ gpsd_activate('u
+.BI "int gpsd_activate(struct\ gps_device_t\ *" "session" ");"
+.HP \w'void\ gpsd_deactivate('u
+.BI "void gpsd_deactivate(struct\ gps_device_t\ *\ " "session" ");"
+.HP \w'gps_mask_t\ gpsd_poll('u
+.BI "gps_mask_t gpsd_poll(struct\ gps_device_t\ *\ " "session" ");"
+.HP \w'void\ gpsd_wrap('u
+.BI "void gpsd_wrap(struct\ gps_device_t\ *\ " "session" ");"
+.SH "DESCRIPTION"
+.PP
+\fBlibgpsd\fR
+is a service library which supports querying GPS devices; link it with the linker option \-lgpsd\&. It is a set of low\-level device\-handling calls, which
+\fBgpsd\fR(1)
+itself uses\&. See
+\fBgpsd\fR(3)
+for a description of the high\-level interface, which is almost certainly what you want\&.
+.PP
+Calling
+\fBgpsd_init()\fR
+initializes a session structure to hold the data collected by the GPS\&.
+.PP
+The second argument must be a context structure\&. The library will use it for information that need to be shared between sessions; presently this includes the leap\-second correction and possibly a pointer to a shared\-memory segment used to communicate with the Network Time Protocol daemon\&.
+.PP
+After the session structure has been set up, you may modify some of its members\&.
+.PP
+\fIgpsd_device\fR
+.RS 4
+This member should hold the path name of the device\&.
+.RE
+.PP
+\fIbaudrate\fR
+.RS 4
+Communication speed in bits per second\&. For NMEA or SiRF devices, the library automatically hunts through all plausible baud rates, stopping on the one where it sees valid packets\&. By setting this field you can designate a speed to be tried at the front of the hunt queue
+.RE
+.PP
+\fBgpsd_activate()\fR
+initializes the connection to the GPS\&.
+\fBgpsd_deactivate()\fR
+closes the connection\&. These functions are provided so that long\-running programs can release a connection when there is no activity requiring the GPS, and re\-acquire it later\&.
+.PP
+\fBgpsd_poll()\fR
+queries the GPS and updates the part of the session structure that holds position, speed, GPS signal quality, and other data returned by the GPS\&. It returns a mask describing which fields have changed\&.
+.PP
+\fBgpsd_wrap()\fR
+ends the session, implicitly performing a
+\fBgpsd_deactivate()\fR\&.
+.PP
+The calling application must define one additional function:
+\fBgpsd_report()\fR\&. The library will use this to issue ordinary status messages\&. See
+gpsd\&.h
+in the source distribution for the set of logging levels\&.
+.PP
+The low\-level functions do not allocate or free any dynamic storage\&. They can thus be used in a long\-running application (such as
+\fBgpsd\fR(8)
+itself) with a guarantee that they won\*(Aqt cause memory leaks\&.
+.SH "BUGS"
+.PP
+Writes to the context structure members are not guarded by a mutex\&.
+.SH "SEE ALSO"
+.PP
+
+\fBgpsd\fR(8),
+\fBgps\fR(1),
+\fBlibgps\fR(3)\&.
+.SH "AUTHOR"
+.PP
+Eric S\&. Raymond <esr@thyrsus\&.com> based partly on earlier work by Remco Treffkorn, Derrick Brashear, and Russ Nelson\&.

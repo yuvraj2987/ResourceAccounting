@@ -114,10 +114,9 @@ static struct fixsource_t source;
 static int debug;
 #endif /* CLIENTDEBUG_ENABLE */
 
-static WINDOW *datawin, *satellites, *messages, *farshadwin; //FARSHAD: added farshadwin
-static int FARSHAD_count=0,FARSHAD_tout=0,FARSHAD_first_read=0, FARSHAD_first_fix=0; //FARSHAD added
+static WINDOW *datawin, *satellites, *messages;
 
-static bool raw_flag = true;//FARSHAD changed false;
+static bool raw_flag = false;
 static bool silent_flag = false;
 static bool magnetic_flag = false;
 static int window_length;
@@ -366,10 +365,7 @@ static void windowsetup(void)
 	    (void)wsetscrreg(messages, 0, ysize - (window_length));
 	}
 
-	farshadwin = newwin(window_length, 80-DATAWIN_WIDTH-SATELLITES_WIDTH, 0, DATAWIN_WIDTH+SATELLITES_WIDTH);//FARSHAD
-    (void)nodelay(farshadwin,(bool)TRUE);//FARSHAD
-	
-    /*@ -nullpass @*/
+	/*@ -nullpass @*/
 	(void)refresh();
 	/*@ +nullpass @*/
 
@@ -485,8 +481,7 @@ static void update_gps_panel(struct gps_data_t *gpsdata)
     int newstate;
     char scr[128], *s;
     bool usedflags[MAXCHANNELS];
-    
-    mvwprintw (farshadwin,8,1,"new update_gps_panel call %d times\n",FARSHAD_count++);wrefresh(farshadwin);//FARSHAD
+
     /* must build bit vector of which statellites are used from list */
     for (i = 0; i < MAXCHANNELS; i++) {
 	usedflags[i] = false;
@@ -494,7 +489,7 @@ static void update_gps_panel(struct gps_data_t *gpsdata)
 	    if (gpsdata->used[j] == gpsdata->PRN[i])
 		usedflags[i] = true;
     }
-    
+
     /* This is for the satellite status display.  Originally lifted from
      * xgps.c.  Note that the satellite list may be truncated based on
      * available screen size, or may only show satellites used for the
@@ -845,25 +840,15 @@ int main(int argc, char *argv[])
 	    break;
 	}
     }
-    
-//    printf("test 0\n");//FARSHAD: added this
 
     /* Grok the server, port, and device. */
     if (optind < argc) {
 	gpsd_source_spec(argv[optind], &source);
-//        printf("test 1\n");//FARSHAD: added this
-    } else 
-    { // FARSHAD added 
-//    printf("test 2\n");;//FARSHAD: added this
+    } else
 	gpsd_source_spec(NULL, &source);
-    }// FARSHAD added
-//    sleep(2);//FARSHADi
-//
-//
+
     /* Open the stream to gpsd. */
     if (gps_open(source.server, source.port, &gpsdata) != 0) {
-    //mvwprintw(farshadwin,4,1,"no gpsd running or network error: %d, %s\n", errno, gps_errstr(errno)); wrefresh(farshadwin);//FARSHAD: added this
-    //sleep(5);//FARSHAD
 	(void)fprintf(stderr,
 		      "cgps: no gpsd running or network error: %d, %s\n",
 		      errno, gps_errstr(errno));
@@ -881,91 +866,28 @@ int main(int argc, char *argv[])
 
     if (source.device != NULL)
 	flags |= WATCH_DEVICE;
-    
-//    flags|=WATCH_JSON;//FARSHAD added
-    mvwprintw(farshadwin,1,1,"          farshad window");
-    mvwprintw(farshadwin,2,1,"-------------------------------------");
-    mvwprintw(farshadwin,3,1,"going for the stream at %d ...\n",time(NULL));wrefresh(farshadwin);//FARSHAD
     (void)gps_stream(&gpsdata, flags, source.device);
-    mvwprintw(farshadwin,3,40,"stream done at %d\n",time (NULL));wrefresh(farshadwin);//FARSHAD
 
     /* heart of the client */
-    for (;;) { 
-// FARSHAD commented 20-25 line below and added some lines after
-/*
-    if (!gps_waiting(&gpsdata, 5000000)) {
-    mvwprintw(farshadwin,4,1,"timeout at %d\n",time(NULL));wrefresh(farshadwin);//FARSHAD added
-    sleep(1);//FARSHAD added
-  	    die(GPS_TIMEOUT);
-	} else {    FARSHAD commented
-        mvwprintw(farshadwin,4,1,"going for read at %d\n",time(NULL));wrefresh(farshadwin);//FARSHAD
+    for (;;) {
+	if (!gps_waiting(&gpsdata, 5000000)) {
+	    die(GPS_TIMEOUT);
+	} else {
 	    errno = 0;
 	    if (gps_read(&gpsdata) == -1) {
-        mvwprintw(farshadwin,5,1,"gps_read failed at %d\n",time(NULL));wrefresh(farshadwin);//FARSHAD
-
 		fprintf(stderr, "cgps: socket error 4\n");
 		die(errno == 0 ? GPS_GONE : GPS_ERROR);
 	    } else {
-        mvwprintw(farshadwin,5,1,"gps_read success at %d\n",time(NULL));wrefresh(farshadwin);//FARSHAD
-
-		// Here's where updates go now that things are established. //
+		/* Here's where updates go now that things are established. */
 #ifdef TRUENORTH
 		if (compass_flag)
 		    update_compass_panel(&gpsdata);
 		else
-#endif // TRUENORTH //
-            mvwprintw(farshadwin,14,1,"something new! at %d\n",time(NULL));wrefresh(farshadwin);//FARSHAD
+#endif /* TRUENORTH */
 		    update_gps_panel(&gpsdata);
 	    }
 	}
 
-*/ 
-//FARSHAD end of comments
-//FARSHAD start of added lines
-
-    FARSHAD_tout++;
-    if (FARSHAD_first_read>=0)
-        FARSHAD_first_read++;
-    if (FARSHAD_first_fix >=0)
-        FARSHAD_first_fix++;
-    if (FARSHAD_tout>1000)
-    {
-        mvwprintw(farshadwin,4,1,"nothing is ready within 10 seconds.TIMEOUT. aborting at %d...",time(NULL)); wrefresh(farshadwin);
-        sleep(2);
-        die(GPS_TIMEOUT);
-    }
-    if (gps_waiting(&gpsdata,10000))
-    {
-        mvwprintw(farshadwin,4,1,"something seems to be ready after %d times checking at %d.",FARSHAD_tout,time(NULL));
-        FARSHAD_tout=0;
-        mvwprintw(farshadwin,5,1,"resetting counter and going to read...");wrefresh(farshadwin);
-        errno=0;
-	    if (gps_read(&gpsdata) == -1) {
-        mvwprintw(farshadwin,6,1,"gps_read failed at %d",time(NULL));wrefresh(farshadwin);//FARSHAD
-		fprintf(stderr, "cgps: socket error 4\n");
-        sleep(2);
-		die(errno == 0 ? GPS_GONE : GPS_ERROR);
-	    } else {
-            mvwprintw(farshadwin,6,1,"gps_read done at %d. status is: %d",time(NULL),gpsdata.status);wrefresh(farshadwin);//FARSHAD
-            if (FARSHAD_first_read>0)
-                FARSHAD_first_read=-FARSHAD_first_read;
-            if (FARSHAD_first_read<0)
-                mvwprintw(farshadwin,10,1,"first read got at %d",-FARSHAD_first_read);
-            if (gpsdata->status>0 && FARSHAD_first_fix>=0)
-                FARSHAD_first_fix=-FARSHAD_first_fix;
-            if (FARSHAD_first_fix<0)
-                mvwprintw(farshadwin,11,1,"first fix got at %d",-FARSHAD_first_fix);
-        }
-    }
-		// Here's where updates go now that things are established. //
-#ifdef TRUENORTH
-		if (compass_flag)
-		    update_compass_panel(&gpsdata);
-		else
-#endif // TRUENORTH //
-		    update_gps_panel(&gpsdata);
-
-// FARSHAD end of added lines
 	/* Check for user input. */
 	c = wgetch(datawin);
 

@@ -1,0 +1,146 @@
+'\" t
+.\"     Title: gpsprof
+.\"    Author: [see the "AUTHOR" section]
+.\" Generator: DocBook XSL Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 10 Feb 2005
+.\"    Manual: GPSD Documentation
+.\"    Source: The GPSD Project
+.\"  Language: English
+.\"
+.TH "GPSPROF" "1" "10 Feb 2005" "The GPSD Project" "GPSD Documentation"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+gpsprof \- profile a GPS and gpsd, plotting latency information
+.SH "SYNOPSIS"
+.HP \w'\fBgpsprof\fR\ 'u
+\fBgpsprof\fR [\-f\ \fIplot_type\fR] [\-m\ \fIthreshold\fR] [\-n\ \fIpacketcount\fR] [\-s\ \fIspeed\fR] [\-t\ \fItitle\fR] [\-D\ \fIdebuglevel\fR] [\-h]
+.SH "DESCRIPTION"
+.PP
+gpsprof
+measures the various latencies between a GPS and its client\&. It emits to standard output a GNUPLOT program that draws an illustrative graph\&. It can also be told to emit the raw profile data\&. The information it provides can be useful for establishing an upper bound on latency, and thus on position accuracy of a GPS in motion\&.
+.PP
+gpsprof
+uses instrumentation built into
+gpsd\&.
+.PP
+To display the graph, use
+\fBgnuplot\fR(1)\&. Thus, for example, to display the default spatial scatter plot, do this:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+gpsprof | gnuplot \-persist
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "OPTIONS"
+.PP
+The \-f option sets the plot type\&. The X axis is samples (sentences with timestamps)\&. The Y axis is normally latency in seconds\&. Currently the following plot types are defined:
+.PP
+space
+.RS 4
+Generate a scattergram of fixes and plot a probable\-error circle\&. This data is only meaningful if the GPS is held stationary while
+gpsprof
+is running\&. This is the default\&.
+.sp
+.RE
+.PP
+uninstrumented
+.RS 4
+Plot total latency without instrumentation\&. Useful mainly as a check that the instrumentation is not producing significant distortion\&. It only plots times for sentences that contain fixes; staircase\-like artifacts in the plot are created when elapsed time from sentences without fixes is lumped in\&.
+.RE
+.PP
+raw
+.RS 4
+Plot raw data\&.
+.RE
+.PP
+split
+.RS 4
+Each sentence has its RS232 latency time colored differently\&.
+.RE
+.PP
+cycle
+.RS 4
+Report on the set of sentences or packets emitted by the GPS, their send intervals, and the basic cycle time\&. (This report is plain text rather than a gnuplot script\&.)
+.RE
+.PP
+The instrumented time plot conveys the following information:
+.PP
+RS232 time
+.RS 4
+Time required to send the sentence from the GPS to
+gpsd\&. This measured from the time of the last zero\-length read before the packet to when the packet sniffer recognizes a complete sentence, so there is a small amount of computational overhead mixed in\&.
+.RE
+.PP
+Decode time
+.RS 4
+Elapsed time between sentence reception and the moment that
+gpsd
+ships the resulting update to the profiling client\&.
+.RE
+.PP
+TCP/IP latency
+.RS 4
+Elapsed time between the moment that
+gpsd
+ships the update to the profiling client and the moment it is decoded and timestamped\&.
+.RE
+.PP
+Because of RS232 buffering effects, the profiler sometimes generates reports of ridiculously high latencies right at the beginning of a session\&. The \-m option lets you set a latency threshold, in multiples of the cycle time, above which reports are discarded\&.
+.PP
+The \-n option sets the number of packets to sample\&. The default is 100\&.
+.PP
+The \-s option sets the baud rate\&. Note, this will only work if the chipset accepts a speed\-change command (SiRFstarII and SiRFstarIII support this feature)\&.
+.PP
+The \-t option sets a text string to be included in the plot title\&.
+.PP
+The \-h option makes
+gpsprof
+print a usage message and exit\&.
+.PP
+The \-D sets debug level\&.
+.SH "SEE ALSO"
+.PP
+
+\fBgpsd\fR(8),
+\fBgps\fR(1),
+\fBlibgps\fR(3),
+\fBlibgpsd\fR(3),
+\fBgpsfake\fR(1),
+\fBgpsctl\fR(1),
+\fBgpscat\fR(1),
+\fBgnuplot\fR(1)\&.
+.SH "AUTHOR"
+.PP
+Eric S\&. Raymond
+esr@thyrsus\&.com\&. There is a project page for
+gpsd
+\m[blue]\fBhere\fR\m[]\&\s-2\u[1]\d\s+2\&.
+.SH "NOTES"
+.IP " 1." 4
+here
+.RS 4
+\%http://gpsd.berlios.de/
+.RE

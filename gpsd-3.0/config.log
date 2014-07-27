@@ -1,4 +1,4 @@
-file /home/pi/gpsd-3.0/SConstruct,line 314:
+file /home/pi/ResourceAccounting/gpsd-3.0/SConstruct,line 314:
 	Configure(confdir = .sconf_temp)
 scons: Configure: Checking whether the C++ compiler works
 scons: Configure: ".sconf_temp/conftest_0.cpp" is up to date.
@@ -47,7 +47,7 @@ scons: Configure: The original builder output was:
   |
 scons: Configure: ".sconf_temp/conftest_1" is up to date.
 scons: Configure: The original builder output was:
-  |gcc -o .sconf_temp/conftest_1 -Wl,-rpath=/home/pi/gpsd-3.0 -Wl,-rpath=/usr/local/lib .sconf_temp/conftest_1.o -L. -L/usr/local/lib
+  |gcc -o .sconf_temp/conftest_1 -Wl,-rpath=/home/pi/ResourceAccounting/gpsd-3.0 -Wl,-rpath=/usr/local/lib .sconf_temp/conftest_1.o -L. -L/usr/local/lib
   |
 scons: Configure: (cached) yes
 
@@ -81,7 +81,7 @@ scons: Configure: The original builder output was:
   |
 scons: Configure: Building ".sconf_temp/conftest_2" failed in a previous run and all its sources are up to date.
 scons: Configure: The original builder output was:
-  |gcc -o .sconf_temp/conftest_2 -Wl,-rpath=/home/pi/gpsd-3.0 -Wl,-rpath=/usr/local/lib .sconf_temp/conftest_2.o -L. -L/usr/local/lib
+  |gcc -o .sconf_temp/conftest_2 -Wl,-rpath=/home/pi/ResourceAccounting/gpsd-3.0 -Wl,-rpath=/usr/local/lib .sconf_temp/conftest_2.o -L. -L/usr/local/lib
   |
 scons: Configure: (cached) no
 
@@ -115,7 +115,7 @@ scons: Configure: The original builder output was:
   |
 scons: Configure: Building ".sconf_temp/conftest_3" failed in a previous run and all its sources are up to date.
 scons: Configure: The original builder output was:
-  |gcc -o .sconf_temp/conftest_3 -Wl,-rpath=/home/pi/gpsd-3.0 -Wl,-rpath=/usr/local/lib .sconf_temp/conftest_3.o -L. -L/usr/local/lib
+  |gcc -o .sconf_temp/conftest_3 -Wl,-rpath=/home/pi/ResourceAccounting/gpsd-3.0 -Wl,-rpath=/usr/local/lib .sconf_temp/conftest_3.o -L. -L/usr/local/lib
   |
 scons: Configure: (cached) no
 
@@ -153,7 +153,7 @@ scons: Configure: The original builder output was:
   |
 scons: Configure: ".sconf_temp/conftest_6" is up to date.
 scons: Configure: The original builder output was:
-  |gcc -o .sconf_temp/conftest_6 -Wl,-rpath=/home/pi/gpsd-3.0 -Wl,-rpath=/usr/local/lib .sconf_temp/conftest_6.o -L. -L/usr/local/lib -lrt
+  |gcc -o .sconf_temp/conftest_6 -Wl,-rpath=/home/pi/ResourceAccounting/gpsd-3.0 -Wl,-rpath=/usr/local/lib .sconf_temp/conftest_6.o -L. -L/usr/local/lib -lrt
   |
 scons: Configure: (cached) yes
 
@@ -206,7 +206,7 @@ scons: Configure: The original builder output was:
   |
 scons: Configure: ".sconf_temp/conftest_10" is up to date.
 scons: Configure: The original builder output was:
-  |gcc -o .sconf_temp/conftest_10 -Wl,-rpath=/home/pi/gpsd-3.0 -Wl,-rpath=/usr/local/lib .sconf_temp/conftest_10.o -L. -L/usr/local/lib -lrt -lbluetooth
+  |gcc -o .sconf_temp/conftest_10 -Wl,-rpath=/home/pi/ResourceAccounting/gpsd-3.0 -Wl,-rpath=/usr/local/lib .sconf_temp/conftest_10.o -L. -L/usr/local/lib -lrt -lbluetooth
   |
 scons: Configure: (cached) yes
 
