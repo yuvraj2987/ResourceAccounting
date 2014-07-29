@@ -51,6 +51,9 @@ def main():
     while key != ord('q'):
         key = stdscr.getch()
         stdscr.addch(10,13,key)
+        stdscr.addstr(11,0,"key pressed at time: ")
+        stdscr.addstr(11,21,"%.6f"%get_time())
+        stdscr.addstr(10,12,"")
         stdscr.refresh()
         if (key==ord('i')):
             fuser.write("%.6f 0\n" %get_time())
@@ -60,6 +63,8 @@ def main():
             fuser.write("%.6f 2\n" %get_time())
         if (key==ord('c')):
             fuser.write("%.6f 3\n" %get_time())
+        
+
 
 
     curses.endwin()
