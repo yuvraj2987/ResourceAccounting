@@ -97,6 +97,8 @@
 #include <unistd.h>
 #endif /* S_SPLINT_S */
 
+#include <sys/time.h>
+
 #include "gpsd_config.h"
 #include "gps.h"
 #include "gpsdclient.h"
@@ -747,29 +749,46 @@ int main(int argc, char *argv[])
     int c;
     unsigned int flags = WATCH_ENABLE;
 
+    //FARSHAD start
+    struct timespec timeofday;//FARSHAD
+    double start_time, tstamp;  //FARSHAD
+    char filename[80];//FARSHAD
+    time_t raw_time;//FARSHAD
+    int len;//FARSHAD
+    time(&raw_time);//FARSHAD
+    len=strftime(filename,80,"../python_module/log/log_%Y_%m_%d_%H_%M_%S_cgps.log",localtime(&raw_time));//FARSHAD
+    filename[len]=0;//FARSHAD
+    clock_gettime(CLOCK_MONOTONIC, &timeofday);//FARSHAD
+    start_time=0;
+//   start_time=0.0+timeofday.tv_sec+((double)timeofday.tv_nsec)/1000000000;//FARSHAD
+    FILE *my_file=fopen(filename,"w+");//FARSHAD
+    fprintf(my_file, "#time #0-start/1-response/2-fix/3-quit\n");//FARSHAD
+    fclose(my_file);
+    ////////FARSHAD end
+
     /*@ -observertrans @*/
     switch (gpsd_units()) {
     case imperial:
-	altfactor = METERS_TO_FEET;
-	altunits = "ft";
-	speedfactor = MPS_TO_MPH;
-	speedunits = "mph";
-	break;
+	    altfactor = METERS_TO_FEET;
+    	altunits = "ft";
+    	speedfactor = MPS_TO_MPH;
+    	speedunits = "mph";
+	    break;
     case nautical:
-	altfactor = METERS_TO_FEET;
-	altunits = "ft";
-	speedfactor = MPS_TO_KNOTS;
-	speedunits = "knots";
-	break;
+	    altfactor = METERS_TO_FEET;
+    	altunits = "ft";
+    	speedfactor = MPS_TO_KNOTS;
+    	speedunits = "knots";
+    	break;
     case metric:
-	altfactor = 1;
-	altunits = "m";
-	speedfactor = MPS_TO_KPH;
-	speedunits = "kph";
-	break;
+    	altfactor = 1;
+    	altunits = "m";
+    	speedfactor = MPS_TO_KPH;
+    	speedunits = "kph";
+    	break;
     default:
 	/* leave the default alone */
-	break;
+	    break;
     }
     /*@ +observertrans @*/
 
@@ -866,12 +885,22 @@ int main(int argc, char *argv[])
 
     if (source.device != NULL)
 	flags |= WATCH_DEVICE;
+  
+    
+    my_file=fopen(filename,"a+");//FARSHAD
+    clock_gettime(CLOCK_MONOTONIC, &timeofday);//FARSHAD
+    tstamp=0.0+timeofday.tv_sec+((double)timeofday.tv_nsec)/1000000000;//FARSHAD
+    fprintf(my_file, "%.6f 0\n",tstamp-start_time);//FARSHAD
+    fclose(my_file);//FARSHAD
     (void)gps_stream(&gpsdata, flags, source.device);
 
     /* heart of the client */
-    for (;;) {
-	if (!gps_waiting(&gpsdata, 5000000)) {
-	    die(GPS_TIMEOUT);
+    c=0;// FARSHAD
+    for (;c!='q';) {
+	
+    if (!gps_waiting(&gpsdata, 10000000)) {
+        continue; // FARSHAD
+	    //die(GPS_TIMEOUT); //FARSHAD commented
 	} else {
 	    errno = 0;
 	    if (gps_read(&gpsdata) == -1) {
@@ -884,6 +913,22 @@ int main(int argc, char *argv[])
 		    update_compass_panel(&gpsdata);
 		else
 #endif /* TRUENORTH */
+        if (gpsdata.fix.mode==MODE_2D || gpsdata.fix.mode==MODE_3D){//FARSHAD whole block
+            //got fixed!
+            my_file=fopen(filename,"a+");//FARSHAD
+            clock_gettime(CLOCK_MONOTONIC, &timeofday);//FARSHAD
+            tstamp=0.0+timeofday.tv_sec+((double)timeofday.tv_nsec)/1000000000;//FARSHAD
+            fprintf(my_file, "%.6f 2\n",tstamp-start_time);//FARSHAD
+            fclose(my_file);//FARSHAD
+        }else{
+            //got something but not fixed
+            my_file=fopen(filename,"a+");//FARSHAD
+            clock_gettime(CLOCK_MONOTONIC, &timeofday);//FARSHAD
+            tstamp=0.0+timeofday.tv_sec+((double)timeofday.tv_nsec)/1000000000;//FARSHAD
+            fprintf(my_file, "%.6f 1\n",tstamp-start_time);//FARSHAD
+            fclose(my_file);//FARSHAD
+            
+        }
 		    update_gps_panel(&gpsdata);
 	    }
 	}
@@ -894,7 +939,7 @@ int main(int argc, char *argv[])
 	switch (c) {
 	    /* Quit */
 	case 'q':
-	    die(CGPS_QUIT);
+//	    die(CGPS_QUIT);//FARSHAD
 	    break;
 
 	    /* Toggle spewage of raw gpsd data. */
@@ -911,4 +956,12 @@ int main(int argc, char *argv[])
 	    break;
 	}
     }
+    //FARSHAD manual exit 
+    my_file=fopen(filename,"a+");//FARSHAD
+    clock_gettime(CLOCK_MONOTONIC, &timeofday);//FARSHAD
+    tstamp=0.0+timeofday.tv_sec+((double)timeofday.tv_nsec)/1000000000;//FARSHAD
+    fprintf(my_file, "%.6f 3\n",tstamp-start_time);//FARSHAD
+    fclose(my_file);//FARSHAD
+    die(CGPS_QUIT);
+    return 0;
 }

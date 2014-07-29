@@ -88,7 +88,7 @@
 #define INCLUDEDIR "/include"
 
 /* build IPv6 support */
-#define IPV6_ENABLE 1
+//#define IPV6_ENABLE 1 // FARSHAD commented this line
 
 /* iTrax hardware support */
 #define ITRAX_ENABLE 1

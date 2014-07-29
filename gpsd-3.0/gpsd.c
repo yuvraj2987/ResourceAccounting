@@ -1958,6 +1958,8 @@ int main(int argc, char *argv[])
     /*@+nullpass@*/
 #endif /* PPS_ENABLE */
 
+    gpsd_report(LOG_SHOUT, "gpsd started...\n");//FARSHAD
+
     (void)setlocale(LC_NUMERIC, "C");
     context.debug = 0;
     gps_context_init(&context);

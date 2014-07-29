@@ -13,11 +13,12 @@ def get_time():
 def main():
     try:
         print "----- Event Log Read starts -----"
-        reference_time=get_time()
+        reference_time=0
+#        reference_time=get_time()
         start_time = time.time()
         logfile = "../log/log_"+time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(start_time))+"_eventdevice.log"
         fileObj = open(logfile, "w+")
-        fileObj.write("%.6f # # #\n" % reference_time)
+        fileObj.write("#device name #open time #PID #latency\n")
         fd = deviceModule.open()
         ndevices =0
         while ndevices == 0:

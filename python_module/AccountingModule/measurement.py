@@ -150,7 +150,8 @@ class measureThread (threading.Thread):
 		print "--- measureThread starts ---"
 		
 		with file(self.fileName, "a+") as fd:
-			fd.write("%.6f #\n" % self.offsetTime)
+			fd.write("#time #power(uW)")
+#			fd.write("%.6f #\n" % self.offsetTime)
 		myArray_power = []
 		myIteration_power=1;
 
@@ -199,7 +200,8 @@ class measureThread (threading.Thread):
 
 def main():
 	print "--- main starts  ---"
-	reference_time=get_time()
+#	reference_time=get_time()
+	reference_time=0
 	start_time = time.time()
 	myFile_power = "../log/log_"+time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(start_time))+"_power.log"
 	myFile_socket = "../log/log_"+time.strftime("%Y_%m_%d_%H_%M_%S",time.localtime(start_time))+"_socket.log"
@@ -208,8 +210,9 @@ def main():
 	print "socket log file set to "+myFile_socket
 
 	with file(myFile_socket, "a+") as fd:
-		fd.write("%.6f # # #\n" % reference_time)
-
+		fd.write("#time #0-reqest from apps/1-respond from gpsd to the app #app name  #app PID")
+#		fd.write("%.6f # # #\n" % reference_time)
+        
 
 	print "--- running measureThread ----"
 	

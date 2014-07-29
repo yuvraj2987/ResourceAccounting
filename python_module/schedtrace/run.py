@@ -6,8 +6,8 @@ start_time = time.time()
 filename="../log/log_"+time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(start_time))+"_scheduler.log"
 flog=open (filename, "w")
 
-filename="../log/log_"+time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(start_time))+"_errors.log"
-errors = open(filename,'w')
+filename="../log/log_"+time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime(start_time))+"_scheduler_errorrs.log"
+#errors = open(filename,'w')
  
 last_time = 0
 num_err=0 
@@ -54,6 +54,8 @@ while (1):
                         print line
                         print my_str
                 except:
+                    if (num_err==0):
+                        errors = open(filename,'w')
                     num_err=num_err+1
                     errors.write(line)
                     print "line skipped. a total of "+str(num_err) +" lines not processed, and logged in "+filename+" (some might be duplicates):\n\t"
