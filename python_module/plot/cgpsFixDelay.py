@@ -10,7 +10,8 @@ for root, dirs, files in os.walk("."):
         startTime = 0
         endTime = 0
         dt = 0
-        baseTime = float(fin.readline().split()[0])
+	baseTime=0
+        fin.readline() #skip header
 
         for line in fin:
             line = line.strip().split()

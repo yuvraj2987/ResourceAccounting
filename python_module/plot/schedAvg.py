@@ -12,10 +12,13 @@ cgpsTimes = {}
 totalTimes = {}
 
 for line in fin:
+    try:
+        line = line.strip().split()
+        name = line[0]
+        time = math.floor(float(line[3][:-1]))
+    except:
+        break
 
-    line = line.strip().split()
-    name = line[0]
-    time = math.floor(float(line[3][:-1]))
     if name.startswith("cgps"):
         try:
             cgpsTimes[time] += 1.0

@@ -3,7 +3,8 @@ import sys
 fin = open(sys.argv[1],'r')
 fout = open('powerInfoFormat.txt','w')
 
-startTime = float(fin.readline().split()[0])
+startTime = 0
+fin.readline() # skip header
 
 for line in fin:
     line = line.strip().split()
