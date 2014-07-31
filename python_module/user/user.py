@@ -40,7 +40,7 @@ def main():
     stdscr.addstr(10,0,"pressed key: ")
     stdscr.refresh()
     
-    fuser.write("#time #0-inside/1-outside/2-moving/3-custom")
+    fuser.write("#time #0-inside/1-outside/2-moving/3-custom\n")
     fuser.write("%.6f %d\n" %(get_time(),isoutside))   
 
 
