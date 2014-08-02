@@ -1,5 +1,15 @@
 import sys
 
+# creates a power average file that contains a timestamp
+# and the average power at that time.  The average power
+# at a certain time stamp is created by looking 100 points
+# forward and 100 points backward and taking the average.
+
+# The first file "powerInfoFormat.txt" contains the raw 
+# power data and is very noisy. The second file
+# "powerAvgInfoFormat.txt" contains the average power
+# usage which is not as noisy
+
 fin = open(sys.argv[1],'r')
 fout = open('powerInfoFormat.txt','w')
 
