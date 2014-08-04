@@ -24,7 +24,7 @@ def main():
     stdscr.addstr(0,0,"recording user activity...")
     stdscr.addstr(1,0,"   i for inside")
     stdscr.addstr(2,0,"   o for inside")
-    stdscr.addstr(3,0,"   m for moving")
+    stdscr.addstr(3,0,"   m for marker")
     stdscr.addstr(4,0,"   c for custom")
     stdscr.addstr(5,0,"   q for quit")
     stdscr.addstr(6,0,"---------------------------")
@@ -40,7 +40,7 @@ def main():
     stdscr.addstr(10,0,"pressed key: ")
     stdscr.refresh()
     
-    fuser.write("#time #0-inside/1-outside/2-moving/3-custom\n")
+    fuser.write("#time #0-inside/1-outside/2-marker/3-custom\n")
     fuser.write("%.6f %d\n" %(get_time(),isoutside))   
 
 
