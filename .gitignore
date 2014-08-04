@@ -1,5 +1,5 @@
 #backup
-#*.log
+*.log
 *.o
 #*.img
 *.tar

@@ -31,7 +31,7 @@ cat delay2.plt | sed '$s/..$//' > delay3.plt
 if [ -e *user.log ]
 then
     cat *user.log | awk '{ if ($2 == '2') {print $1 " 0.0 0.0 2" }}' > userCustom.txt
-    python $DIR/user.py *user.log
+    python $DIR/userGraph.py *user.log
     cp $DIR/user.plt user.plt
     gnuplot < user.plt
 fi
@@ -46,4 +46,4 @@ gnome-open ra.pdf
 gnome-open delay.pdf
 gnome-open gpsdSched.pdf
 gnome-open user.pdf
-
+#
