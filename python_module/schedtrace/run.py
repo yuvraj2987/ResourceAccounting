@@ -26,7 +26,7 @@ os.system("./trace_flush.sh")
 print "starting scheduler switch tracing"
 os.system("./trace_start.sh")
 
-print "recording and logging every 10 seconds..."
+print "recording and logging every 3 seconds..."
 
 
 while (1):
@@ -62,6 +62,6 @@ while (1):
                     print line
 
     flog.flush()
-    time.sleep(10.0)
+    time.sleep(3.0)
 
 

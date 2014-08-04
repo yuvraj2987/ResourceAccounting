@@ -1,0 +1,12 @@
+To create the graphs, do the following:
+
+$ graphScripts/createGraphs.sh /path/to/data/files
+
+This will create inside /path/to/data/files the
+following graphs:
+
+ra.pdf         - cgps cpu & power usage
+delay.pdf      - cgps fix delay
+gpsdSched.pdf  - gpsd cpu usage
+user.pdf       - user inside/outside status and custom markers
+

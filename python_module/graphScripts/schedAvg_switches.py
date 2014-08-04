@@ -4,79 +4,56 @@ import os
 
 # creates a txt file for both cgps and gpsd showing
 # the % cpu used during a time period (1 second).
+
 fin = open(sys.argv[1],'r')
 fout = open("cgpsSchedAvg2.txt","w")
 fout2 = open("gpsdSchedAvg2.txt","w")
 
-time=0.0
 totalCount = 0
 cgpsCount = 0
 gpsdCount = 0
-name=""
-slot=0
 
 cgpsTimes = {}
 gpsdTimes = {}
 totalTimes = {}
 
-for wholeline in fin:
-    prevtime=time
+for line in fin:
     try:
-        line = wholeline.strip().split()
+        line = line.strip().split()
         name = line[0]
-        time = float(line[3][:-1])
-        slot = math.floor(prevtime)
-    
+        time = math.floor(float(line[3][:-1]))
     except:
         break
 
-    if slot == 0:
-	continue
-
     if name.startswith("cgps"):
         try:
-            cgpsTimes[slot] += time - prevtime
+            cgpsTimes[time] += 1.0
         except:
-            cgpsTimes[slot] = time - prevtime
-
-        if cgpsTimes[slot] > 1:
-            cgpsTimes[slot+1]=cgpsTimes[slot]-1
-            cgpsTimes[slot]=1
-            totalTimes[slot]=1
-            totalTimes[slot+1]=time-prevtime -1
-            
-
+            cgpsTimes[time] = 1.0
     if name.startswith("gpsd"):
         try:
-            gpsdTimes[slot] += time - prevtime
+            gpsdTimes[time] += 1.0
         except:
-            gpsdTimes[slot] = time - prevtime
-
-        if gpsdTimes[slot] > 1:
-            gpsdTimes[slot]=1
-
+            gpsdTimes[time] = 1.0
     try:
-        totalTimes[slot] += time - prevtime
+        totalTimes[time] += 1.0
     except:
-        totalTimes[slot] = time - prevtime
-        
-    if totalTimes[slot] > 1:
-        totalTimes[slot]=1
+        totalTimes[time] = 1.0
 
 sorted(totalTimes, key=totalTimes.get)
-
 for key in totalTimes:
     try:
-        avg = cgpsTimes[key]
+        avg = cgpsTimes[key]/totalTimes[key]
     except:
         avg = 0.0
     try:
         avg2 = gpsdTimes[key]/totalTimes[key]
     except:
         avg2 = 0.0
-
+    #fout.write(str(key) + "\t" + str((avg*1000000) + 100000) + "\n")
     fout.write(str(key) + "\t" + str(avg) + "\n")
     fout2.write(str(key) + "\t" + str(avg2) + "\n")
+    #print str(int(key)) + ":\t" + str(int(cgpsTimes[key])) + " / " + str(int(totalTimes[key])) + "\t= " + str(avg)
 
 fin.close()
 fout.close()
