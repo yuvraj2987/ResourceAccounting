@@ -1,10 +1,16 @@
 set terminal pdf
 set output "ra.pdf"
-set key box opaque left
-set title "GPS Resource Accounting Logs on Pi\nOutside (linpack running with cgps measurements)"
+set key box opaque center top
+set title "GPS Resource Accounting Logs on Pi\ninside -> outside -> inside (cgps)"
 set xlabel "Time (seconds)"
-set ylabel "Power"
-plot "powerInfoFormat.txt" using 1:2 title "power" with lines,\
-     "powerAvgInfoFormat.txt" using 1:2 title "powerAvg" with lines lw 5,\
-     "socketInfoFormat.txt" using ($1):(100000):($3-$1):(100000) title "socket" with vectors filled nohead
-#     "eventdeviceInfoFormat.txt" using ($2):(100000):(0):(100000) title "eventdevice" with vectors filled nohead
+set ylabel "Power (uW)"
+set y2label "cgps cpu usage"
+set y2range [0:0.1]
+set ytics textcolor rgb "#2E8B57"
+set y2tics 0.02 nomirror tc lt 1
+set ytics nomirror
+set style fill solid
+set border lw 3
+set yrange [100000:200000]
+plot "cgpsSchedAvg.txt" title "Sched Switch" axes x1y2 w boxes lt rgb "red",\
+     "powerAvgInfoFormat.txt" using 1:2 title "Power Avg" with lines lw 5 lt rgb "#2E8B57",\

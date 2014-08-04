@@ -1,21 +1,46 @@
 #!/bin/bash
 
-# power usage
-python power.py *power.log
+# Use this file to create multiple graphs
+# arg 1 = directoy of data files
 
-# cgps sched switch
-python schedAvg.py *scheduler.log
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $1
+
+# power usage
+python $DIR/power.py *power.log
+
+# cgps & gpsd sched switch
+python $DIR/schedAvg.py *scheduler.log
 
 # cgps fix delay
-python cgpsFixDelay.py
+python $DIR/cgpsFixDelay.py
+
+# modify delay plt file
+echo `head -1 powerAvgInfoFormat.txt | awk '{ print $1 }'i` 0 > cgpsFixDelayData.txt
+echo >> cgpsFixDelayData.txt
+cp $DIR/delay.plt delay2.plt
+for f in `ls cgpsFixDelayData* | sort`
+do
+    #echo \"$f\" w lines lw 5,\\ >> delay2.plt
+    echo \"$f\" w filledcu,\\ >> delay2.plt
+done
+echo `tail -1 powerAvgInfoFormat.txt | awk '{ print $1 }'i` 0 >> cgpsFixDelayData.txt
+cat delay2.plt | sed '$s/..$//' > delay3.plt
+
+# user data
+if [ -e *user.log ]
+then
+    cat *user.log | awk '{ if ($2 == '3') print $0 }' > userCustom.txt
+    python $DIR/user.py *user.log
+    gnuplot < $DIR/user.plt
+fi
 
 # create graph & open
-cp ra.plt /tmp/ra.plt
-for f in `ls cgpsFixDelayData*`
-do
-    echo \"$f\" notitle w lines lw 5 ,\\ >> /tmp/ra.plt
-done
-cat /tmp/ra.plt | sed '$s/..$//' > /tmp/ra2.plt
-gnuplot < /tmp/ra2.plt
-rm /tmp/ra*.plt
-gnome-open ra.pdf
+gnuplot < delay3.plt
+gnuplot < $DIR/ra.plt
+gnuplot < $DIR/gpsdSched.plt
+
+rm *.plt *.txt
+#gnome-open ra.pdf
+#gnome-open delay.pdf
+#gnome-open gpsdSched.pdf
