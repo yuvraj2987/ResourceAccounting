@@ -12,4 +12,4 @@ set style fill solid
 set border lw 3
 set yrange [100:200]
 plot "cgpsSchedAvg.txt" title "Sched Switch" axes x1y2 w boxes lt rgb "red",\
-     "powerAvgInfoFormat.txt" using ($1):($2/1000) title "Power Avg" with lines lw 5 lt rgb "#2E8B57"
+     "powerAvgInfoFormat.txt" using ($1):($2/1000) title "Power Avg" with lines lw 3 lt rgb "#2E8B57"

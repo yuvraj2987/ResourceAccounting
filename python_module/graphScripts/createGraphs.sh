@@ -36,6 +36,14 @@ then
     gnuplot < user.plt
 fi
 
+#power model
+if [ -e cgpsFixDelayData.txt ]
+then
+    python $DIR/model.py
+    cp $DIR/model.plt model.plt
+    gnuplot < model.plt
+fi
+
 # create graph & open
 gnuplot < delay3.plt
 gnuplot < $DIR/ra.plt
@@ -43,6 +51,7 @@ gnuplot < $DIR/gpsdSched.plt
 
 rm *.plt *.txt
 gnome-open ra.pdf
+gnome-open model.pdf
 gnome-open delay.pdf
 gnome-open gpsdSched.pdf
 gnome-open user.pdf
