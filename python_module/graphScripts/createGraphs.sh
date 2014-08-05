@@ -21,8 +21,8 @@ echo >> cgpsFixDelayData.txt
 cp $DIR/delay.plt delay2.plt
 for f in `ls cgpsFixDelayData* | sort`
 do
-    #echo \"$f\" w lines lw 5,\\ >> delay2.plt
-    echo \"$f\" w filledcu,\\ >> delay2.plt
+    echo \"$f\" w lines lw 0.1,\\ >> delay2.plt
+    #echo \"$f\" w filledcu,\\ >> delay2.plt
 done
 echo `tail -1 powerAvgInfoFormat.txt | awk '{ print $1 }'i` 0 >> cgpsFixDelayData.txt
 cat delay2.plt | sed '$s/..$//' > delay3.plt

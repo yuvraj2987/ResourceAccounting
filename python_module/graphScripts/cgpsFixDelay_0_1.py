@@ -18,9 +18,9 @@ for root, dirs, files in os.walk("."):
         startTime = 0
         endTime = 0
         dt = 0
-	file_open=0
         baseTime = 0
 	fin.readline() #skip header
+
         for line in fin:
             line = line.strip().split()
             dt = float(line[0])
@@ -29,17 +29,19 @@ for root, dirs, files in os.walk("."):
                 startTime = baseTime + dt
             if (n==2):
                 endTime = baseTime + dt
-                if (startTime==0 or endTime==0):
-                    break
-	        if file_open==0:
-		    file_open=1
-		    fout = open("cgpsFixDelayData"+str(count)+".txt", "w+")
-                fout.write(str(startTime) + " "+str(count)+"\n")
-                fout.write(str(startTime) + " "+str(count+1)+"\n")
-                fout.write(str(endTime) + " "+str(count+1)+"\n")
-                fout.write(str(endTime) + " "+str(count)+"\n")
-                startTime= baseTime + dt
+                break
 
+        if (startTime==0 or endTime==0):
+            continue
+
+        fout = open("cgpsFixDelayData"+str(count)+".txt", "w")
+        #fout.write(str(startTime) + " 100000\n")
+        #fout.write(str(startTime) + " 150000\n")
+        #fout.write(str(endTime) + " 150000\n")
+        #fout.write(str(endTime) + " 100000\n")
+        fout.write(str(startTime) + " 0\n")
+        fout.write(str(startTime) + " 1\n")
+        fout.write(str(endTime) + " 1\n")
+        fout.write(str(endTime) + " 0\n")
         count += 1
-        n=0
-        fout.close()
+        
