@@ -36,11 +36,16 @@ python $DIR/userGraph.py *user.log
 
 
 echo ""
+echo "" > energy.report
 echo "energy consumed based on model (timestamp(S) + energy(uJ)): "
+echo "energy consumed based on model (timestamp(S) + energy(uJ)): " >> energy.report
 tail -1 energy_model.txt
+tail -1 energy_model.txt >> energy.report
 echo ""
-echo "energy consumed based on measurement (timestamp(S) + energy(uJ)): "
+echo "energy consumed based on measurement (timestamp(S) + energy(uJ)): " 
+echo "energy consumed based on measurement (timestamp(S) + energy(uJ)): " >> energy.report
 tail -1 energy_real.txt
+tail -1 energy_real.txt >> energy.report
 echo ""
 
 # create graph & open
