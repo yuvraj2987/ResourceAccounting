@@ -64,12 +64,18 @@ line=timeref.readline()
 finishingtime=float(line.strip().split()[0])
 
 fout = open("powerModel.txt", "w")
+fenergy = open("energy_model.txt","w")
+timeStep=0.5
+energy=0
 while (timepoint<finishingtime):
     value = 120000
     for t in range (count):
 	if timepoint>slotsStart[t] and timepoint<slotsEnd[t]:
 	    value=170000
     fout.write(str(timepoint)+"\t"+str(value)+"\n")
-    timepoint+=0.5
+    energy+=value*timeStep
+    fenergy.write(str(timepoint)+"\t"+str(energy)+"\n")
+    timepoint+=timeStep
 
 fout.close()
+fenergy.close()

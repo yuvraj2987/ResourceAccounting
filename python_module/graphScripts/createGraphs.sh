@@ -27,32 +27,35 @@ done
 echo `tail -1 powerAvgInfoFormat.txt | awk '{ print $1 }'i` 0 >> cgpsFixDelayData.txt
 cat delay2.plt | sed '$s/..$//' > delay3.plt
 
-# user data
-if [ -e *user.log ]
-then
-    cat *user.log | awk '{ if ($2 == '2') {print $1 " 0.0 0.0 2" }}' > userCustom.txt
-    python $DIR/userGraph.py *user.log
-    cp $DIR/user.plt user.plt
-    gnuplot < user.plt
-fi
-
 #power model
-if [ -e cgpsFixDelayData.txt ]
-then
-    python $DIR/model.py
-    cp $DIR/model.plt model.plt
-    gnuplot < model.plt
-fi
+python $DIR/model.py
+
+# user data
+cat *user.log | awk '{ if ($2 == '2') {print $1 " 0.0 0.0 2" }}' > userCustom.txt
+python $DIR/userGraph.py *user.log
+
+
+echo ""
+echo "energy consumed based on model (timestamp(S) + energy(uJ)): "
+tail -1 energy_model.txt
+echo ""
+echo "energy consumed based on measurement (timestamp(S) + energy(uJ)): "
+tail -1 energy_real.txt
+echo ""
 
 # create graph & open
 gnuplot < delay3.plt
-gnuplot < $DIR/ra.plt
+gnuplot < $DIR/power.plt
+gnuplot < $DIR/energy.plt
 gnuplot < $DIR/gpsdSched.plt
+gnuplot < $DIR/cgpsSched.plt
+gnuplot < $DIR/user.plt
 
 rm *.plt *.txt
-gnome-open ra.pdf
-gnome-open model.pdf
 gnome-open delay.pdf
+gnome-open power.pdf
+gnome-open energy.pdf
 gnome-open gpsdSched.pdf
+gnome-open cgpsSched.pdf
 gnome-open user.pdf
 #

@@ -33,7 +33,7 @@ time = []
 power = []
 for line in fin:
     line = line.strip().split()
-    time += [line[0]]
+    time += [float(line[0])]
     power += [float(line[1])]
 
 poweravg = []
@@ -55,4 +55,14 @@ for x in range(len(power)):
     poweravg += [avg]
 
 for x in range(len(power)):
-    fout.write( time[x] + '\t' + str(poweravg[x]) + '\n' )
+    fout.write( str(time[x]) + '\t' + str(poweravg[x]) + '\n' )
+
+energy=0
+timePointer=0
+fenergy = open("energy_real.txt","w")
+while timePointer<len(time)-1:
+    energy+=(time[timePointer+1]-time[timePointer])*power[timePointer]
+    fenergy.write(str(time[timePointer])+"\t"+str(energy)+"\n")
+    timePointer+=1
+
+    
