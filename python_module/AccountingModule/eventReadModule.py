@@ -21,12 +21,15 @@ def main():
         fileObj.write("#device name #open time #PID #latency\n")
         fd = deviceModule.open()
         ndevices =0
+	first_print=0
         while ndevices == 0:
             ndevices = deviceModule.get_device(fd)
             if ndevices < 0:
                 print "Error while reading event_log device module"
                 sys.exit(-1)
-            print "Wait till somone opens gps for reading"
+	    if first_print==0:
+	        print "Wait till somone opens gps for reading"
+		first_print=1
         #End of while
         print "Devices found :", ndevices
         while True:
