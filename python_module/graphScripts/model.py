@@ -59,7 +59,6 @@ for root, dirs, files in os.walk("."):
 timeref=open("cgpsFixDelayData.txt","r")
 line=timeref.readline()
 timepoint=float(line.strip().split()[0])
-timeref.readline()#there is one empty line
 line=timeref.readline()
 finishingtime=float(line.strip().split()[0])
 

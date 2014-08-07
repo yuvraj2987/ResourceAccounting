@@ -34,6 +34,7 @@ for root, dirs, files in os.walk("."):
 	        if file_open==0:
 		    file_open=1
 		    fout = open("cgpsFixDelayData"+str(count)+".txt", "w+")
+		    print str(items)+" written to file " + str(count)
                 fout.write(str(startTime) + " "+str(count)+"\n")
                 fout.write(str(startTime) + " "+str(count+1)+"\n")
                 fout.write(str(endTime) + " "+str(count+1)+"\n")

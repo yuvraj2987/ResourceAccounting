@@ -29,6 +29,12 @@ for line in fin:
                fout.write(str(dt)+" 0\n")
                fout.write(str(dt)+" 1\n")
 
+fref = open("cgpsFixDelayData.txt","r")
+for line in fref:
+    line=line.strip().split()
+    dt = float(line[0])
+
 if (prev==1):
     fout.write(str(dt)+" 1\n")
+else:
     fout.write(str(dt)+" 0\n")

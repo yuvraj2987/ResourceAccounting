@@ -15,6 +15,8 @@ slot=0
 
 eTimes = {}
 
+fin.readline() #skip header
+
 for wholeline in fin:
     prev=totalCount
     try:
@@ -35,7 +37,7 @@ for wholeline in fin:
     except:
         eTimes[slot] = totalCount-prev
 
-sorted(totalTimes, key=totalTimes.get)
+sorted(eTimes, key=eTimes.get)
 
 for key in eTimes:
     try:

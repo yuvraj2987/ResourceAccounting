@@ -17,7 +17,7 @@ python $DIR/cgpsFixDelay.py
 
 # modify delay plt file
 echo `head -1 powerAvgInfoFormat.txt | awk '{ print $1 }'i` 0 > cgpsFixDelayData.txt
-echo >> cgpsFixDelayData.txt
+#echo >> cgpsFixDelayData.txt
 cp $DIR/delay.plt delay2.plt
 for f in `ls cgpsFixDelayData* | sort`
 do
