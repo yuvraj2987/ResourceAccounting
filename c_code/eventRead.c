@@ -59,7 +59,7 @@ int main(){
   int firsttime=1;
   now=time(NULL);
   tim = *(localtime(&now));
-  strftime(tmpname,80,"%Y-%m-%d-%H-%M-%S",&tim);
+  strftime(tmpname,80,"%Y_%m_%d_%H_%M_%S",&tim);
   sprintf(fname,"../python_module/log/log_%s_eventdevice.log",tmpname);
 
   my_log=fopen(fname,"w");
