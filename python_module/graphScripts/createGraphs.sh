@@ -48,6 +48,9 @@ tail -1 energy_real.txt
 tail -1 energy_real.txt >> energy.report
 echo ""
 
+# eventReads
+python $DIR/events.py *eventdevice.log
+
 # create graph & open
 gnuplot < delay3.plt
 gnuplot < $DIR/power.plt
@@ -55,6 +58,7 @@ gnuplot < $DIR/energy.plt
 gnuplot < $DIR/gpsdSched.plt
 gnuplot < $DIR/cgpsSched.plt
 gnuplot < $DIR/user.plt
+gnuplot < $DIR/events.plt
 
 rm *.plt *.txt
 gnome-open delay.pdf
@@ -63,4 +67,5 @@ gnome-open energy.pdf
 gnome-open gpsdSched.pdf
 gnome-open cgpsSched.pdf
 gnome-open user.pdf
+gnome-open events.pdf
 #
